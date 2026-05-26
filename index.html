@@ -4,265 +4,510 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment System Pesona Kahuripan 9</title>
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-
         @media print {
-            .no-print {
-                display: none !important;
-            }
+            .no-print { display: none !important; }
+            body { background-color: white; padding: 0; }
+            .container-box { box-shadow: none; border: none; width: 100%; max-width: 100%; }
         }
     </style>
 </head>
+<body class="bg-gray-100 p-4 md:p-8">
 
-<body class="bg-gray-100 p-4">
+    <div class="fixed top-4 right-4 z-50 no-print">
+        <select id="langSelector" onchange="changeLanguage(this.value)" class="bg-white border border-gray-300 rounded px-2 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="en">🇬🇧 English (UK)</option>
+            <option value="id">🇮🇩 Indonesia</option>
+        </select>
+    </div>
 
-<div class="max-w-5xl mx-auto bg-white rounded-lg shadow-lg p-6">
-
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-indigo-700">
-            Payment System Pesona Kahuripan 9
-        </h1>
-
-        <div class="space-x-2">
-            <button onclick="setup2FA()"
-                class="bg-yellow-500 text-white px-4 py-2 rounded">
-                🛡️ Setup 2FA
-            </button>
-
-            <button onclick="handleLogout()"
-                class="bg-red-600 text-white px-4 py-2 rounded">
-                Logout
-            </button>
+    <div id="login-section" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg mt-10 border-t-8 border-indigo-600 hidden">
+        <div class="text-center mb-6">
+            <img src="pk_group.png" alt="Logo" class="h-20 mx-auto mb-4 object-contain" onerror="this.style.display='none'">
+            <h2 data-i18n="login_title" class="text-2xl font-bold text-gray-800">Mortgage Portal Login</h2>
+            <p data-i18n="login_subtitle" class="text-sm text-gray-500">Please sign in to manage your payments.</p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label data-i18n="username_label" class="block text-sm font-medium text-gray-700">Email Address</label>
+                <input type="email" id="email" class="w-full p-2 border rounded mt-1" placeholder="Enter email">
+            </div>
+            <div>
+                <label data-i18n="password_label" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" class="w-full p-2 border rounded mt-1" placeholder="Enter password">
+            </div>
+            <button id="btnLogin" onclick="handleLogin()" data-i18n="login_btn" class="w-full bg-indigo-600 text-white py-2 rounded font-bold hover:bg-indigo-700">Login</button>
         </div>
     </div>
 
-    <div class="bg-indigo-50 p-4 rounded border">
-        <p class="font-semibold">Google Authenticator MFA Ready</p>
-        <p class="text-sm text-gray-600">
-            File final hasil merge Appwrite 2FA v16.0.0
-        </p>
+    <div id="mfa-section" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg mt-10 border-t-8 border-indigo-600 hidden">
+        <div class="text-center mb-6">
+            <h2 data-i18n="mfa_title" class="text-2xl font-bold text-gray-800">Two-Factor Auth</h2>
+            <p data-i18n="mfa_subtitle" class="text-sm text-gray-500">Enter the 6-digit code from Google Authenticator.</p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <input type="text" id="mfa-code" class="w-full p-3 border rounded text-center text-xl tracking-[0.5em] font-bold" placeholder="000000" maxlength="6">
+            </div>
+            <button id="btnMfa" onclick="submitMfa()" class="w-full bg-indigo-800 text-white py-2 rounded font-bold hover:bg-indigo-900">Verify Code</button>
+            <button onclick="handleLogout()" data-i18n="cancel_btn" class="w-full text-gray-500 py-2 underline text-sm">Cancel</button>
+        </div>
     </div>
 
-</div>
-
-<!-- MODAL 2FA -->
-<div id="setup2faModal"
-class="fixed inset-0 bg-black bg-opacity-75 hidden flex justify-center items-center z-[100] no-print">
-
-    <div class="bg-white p-6 rounded-lg w-full max-w-sm text-center shadow-xl">
-
-        <h3 class="text-xl font-bold mb-2 text-indigo-800">
-            Scan QR Code
-        </h3>
-
-        <p class="text-sm text-gray-600 mb-4">
-            Scan using Google Authenticator
-        </p>
-
-        <div id="qr-container"
-            class="flex justify-center p-4 bg-gray-50 border rounded-lg mb-4 mx-auto w-[230px] h-[230px]">
+    <div id="dashboard-section" class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg hidden container-box">
+        <div class="flex justify-between items-center mb-6 no-print border-b pb-4">
+            <div class="flex items-center gap-4">
+                <img src="pk_group.png" alt="Logo" class="h-10 hidden sm:block object-contain" onerror="this.style.display='none'">
+                <div class="space-x-2">
+                    <button onclick="showView('form-view')" data-i18n="nav_input" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Payment Input</button>
+                    <button onclick="showView('table-view'); loadData();" data-i18n="nav_history" class="bg-indigo-800 text-white px-4 py-2 rounded hover:bg-indigo-900">Payment History</button>
+                </div>
+            </div>
+            <div class="space-x-2 flex">
+                <button onclick="setup2FA()" data-i18n="setup_2fa_btn" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 font-semibold shadow-sm">🛡️ Setup 2FA</button>
+                <button onclick="handleLogout()" data-i18n="logout_btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Logout</button>
+            </div>
         </div>
 
-        <input
-            type="text"
-            id="setup-2fa-code"
-            class="w-full p-3 border rounded text-center text-xl tracking-[0.5em] font-bold mb-4"
-            placeholder="000000"
-            maxlength="6">
+        <div id="form-view" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white p-4 rounded-lg border flex items-center justify-center">
+                    <img src="42_90.png" alt="House Plan" class="w-40 rounded shadow-md border object-cover" onerror="this.style.display='none'">
+                </div>
+                
+                <div class="bg-white p-4 rounded-lg border text-center lg:text-left">
+                    <h2 class="text-xl font-bold text-gray-800">Pesona Kahuripan 9</h2>
+                    <p class="text-indigo-700 font-semibold">Block E8 No. 38</p>
+                    <span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded mt-2 font-bold border border-indigo-200"><span data-i18n="type_label">Type</span>: 42/90</span>
+                </div>
 
-        <div class="flex justify-between gap-2">
-
-            <button
-                onclick="close2FAModal()"
-                class="w-1/2 px-4 py-2 bg-gray-200 rounded font-bold">
-                Cancel
-            </button>
-
-            <button
-                onclick="confirmSetup2FA()"
-                class="w-1/2 px-4 py-2 bg-green-600 text-white rounded font-bold">
-                Confirm 2FA
-            </button>
-
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 relative overflow-hidden">
+                    <div class="absolute right-[-10px] top-[-10px] opacity-10">
+                        <svg class="w-20 h-20 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"></path></svg>
+                    </div>
+                    <h3 data-i18n="bank_info_title" class="text-sm font-bold text-blue-800 uppercase mb-2">Receiver Account Information:</h3>
+                    <div class="text-sm space-y-1 text-blue-900">
+                        <p><strong data-i18n="code_label">Code</strong>: 200</p>
+                        <p><strong data-i18n="bank_label">Bank</strong>: BTN</p>
+                        <p><strong data-i18n="acc_no_label">Acc No</strong>: 241-010-5008-5155</p>
+                        <p><strong data-i18n="name_label">Name</strong>: Rizqi Panesa Rahman</p>
+                    </div>
+                </div>
+            </div>
+            
+            <form id="kprForm" onsubmit="submitForm(event)" class="max-w-2xl mx-auto space-y-4 bg-gray-50 p-6 rounded-lg border">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium"><span data-i18n="form_date">Payment Date</span> <span class="text-red-500">*</span></label>
+                        <input type="date" id="tanggal" required class="w-full p-2 border rounded mt-1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium"><span data-i18n="form_method">Payment Method</span> <span class="text-red-500">*</span></label>
+                        <select id="metode" required class="w-full p-2 border rounded mt-1">
+                            <option value="" data-i18n="select_method">Select Method</option>
+                            <option value="ATM Transfer">ATM Transfer</option>
+                            <option value="Mobile Banking">Mobile Banking</option>
+                            <option value="Auto-Debit">Auto-Debit</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium"><span data-i18n="form_amount">Amount (IDR)</span> <span class="text-red-500">*</span></label>
+                    <input type="number" id="nominal" placeholder="e.g., 3000000" required class="w-full p-2 border rounded mt-1">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium"><span data-i18n="form_proof">Proof of Payment</span> <span class="text-red-500">*</span></label>
+                    <input type="file" id="bukti" accept="image/*" required class="w-full p-1 border rounded mt-1 bg-white">
+                </div>
+                <button type="submit" id="submitBtn" data-i18n="submit_btn" class="w-full bg-indigo-600 text-white py-3 rounded-md font-bold hover:bg-indigo-700 transition">Submit Payment</button>
+                <div id="loading" data-i18n="loading_msg" class="hidden text-center text-indigo-600 font-bold animate-pulse">Processing... Please wait.</div>
+            </form>
         </div>
 
+        <div id="table-view" class="hidden">
+            <h2 data-i18n="history_title" class="text-2xl font-bold mb-4">Payment History</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-indigo-50 p-4 rounded-lg border-l-4 border-indigo-600">
+                    <p data-i18n="total_amount_label" class="text-sm font-semibold text-gray-600 uppercase">Grand Total Amount:</p>
+                    <p id="totalGlobal" class="text-2xl font-bold text-indigo-800">Rp 0</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-600">
+                    <p data-i18n="progress_label" class="text-sm font-semibold text-gray-600 uppercase">Installment Progress (20 Years):</p>
+                    <p id="tenorProgress" class="text-2xl font-bold text-green-800">0 / 240 Months</p>
+                    <p id="sisaTenor" class="text-xs text-green-600 font-medium">Remaining: 240 Months left</p>
+                </div>
+            </div>
+            <div class="bg-gray-100 p-4 rounded-lg mb-6 flex flex-wrap gap-3 items-center no-print">
+                <select id="filterMonth" class="border p-1 rounded text-sm">
+                    <option value="" data-i18n="all_months">All Months</option>
+                    <option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+                </select>
+                <select id="filterYear" class="border p-1 rounded text-sm">
+                    <option value="" data-i18n="all_years">All Years</option>
+                    <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
+                </select>
+                <button onclick="applyFilter()" data-i18n="search_btn" class="bg-indigo-600 text-white px-4 py-1 rounded text-sm">Search</button>
+                <button onclick="resetFilter()" data-i18n="reset_btn" class="bg-gray-500 text-white px-4 py-1 rounded text-sm">Reset</button>
+                <div class="ml-auto space-x-1">
+                    <button onclick="exportExcel()" class="bg-green-600 text-white px-3 py-1 rounded text-sm">Excel</button>
+                    <button onclick="exportPDF()" class="bg-red-500 text-white px-3 py-1 rounded text-sm">PDF</button>
+                    <button onclick="window.print()" data-i18n="print_btn" class="bg-gray-800 text-white px-3 py-1 rounded text-sm">Print</button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b">
+                            <th data-i18n="th_date" class="p-3">Date</th>
+                            <th data-i18n="th_method" class="p-3">Method</th>
+                            <th data-i18n="th_amount" class="p-3">Amount</th>
+                            <th data-i18n="th_receipt" class="p-3 text-center no-print">Receipt</th>
+                            <th data-i18n="th_actions" class="p-3 text-center no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
-</div>
 
-<script type="module">
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50 no-print">
+        <div class="bg-white p-6 rounded-lg w-full max-w-md">
+            <h3 data-i18n="edit_title" class="text-xl font-bold mb-4">Edit Payment</h3>
+            <input type="hidden" id="editId">
+            <div class="space-y-4">
+                <input type="date" id="editTanggal" class="w-full p-2 border rounded">
+                <select id="editMetode" class="w-full p-2 border rounded">
+                    <option value="ATM Transfer">ATM Transfer</option>
+                    <option value="Mobile Banking">Mobile Banking</option>
+                    <option value="Auto-Debit">Auto-Debit</option>
+                </select>
+                <input type="number" id="editNominal" class="w-full p-2 border rounded">
+            </div>
+            <div class="flex justify-end gap-2 mt-6">
+                <button onclick="closeEditModal()" data-i18n="cancel_btn" class="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+                <button onclick="saveEdit()" data-i18n="save_btn" class="px-4 py-2 bg-indigo-600 text-white rounded">Save</button>
+            </div>
+        </div>
+    </div>
 
-import {
-    Client,
-    Account
-} from 'https://cdn.jsdelivr.net/npm/appwrite@16.0.0/+esm';
+    <div id="setup2faModal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex justify-center items-center z-[100] no-print">
+        <div class="bg-white p-6 rounded-lg w-full max-w-sm text-center shadow-xl">
+            <h3 data-i18n="scan_qr_title" class="text-xl font-bold mb-2 text-indigo-800">Scan QR Code</h3>
+            <p data-i18n="scan_qr_desc" class="text-sm text-gray-600 mb-4">Scan this using Google Authenticator, then enter the 6-digit code below to confirm setup.</p>
+            
+            <div id="qr-container" class="flex justify-center p-4 bg-gray-50 border rounded-lg mb-4 mx-auto w-[230px] h-[230px]">
+                </div>
+            
+            <input type="text" id="setup-2fa-code" class="w-full p-3 border rounded text-center text-xl tracking-[0.5em] font-bold mb-4" placeholder="000000" maxlength="6">
+            
+            <div class="flex justify-between gap-2">
+                <button onclick="close2FAModal()" data-i18n="cancel_btn" class="w-1/2 px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300">Cancel</button>
+                <button onclick="confirmSetup2FA()" class="w-1/2 px-4 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700">Confirm 2FA</button>
+            </div>
+        </div>
+    </div>
 
-const client = new Client()
-    .setEndpoint('https://sgp.cloud.appwrite.io/v1')
-    .setProject('6a13b3dc00064ce155ef');
+    <script type="module">
+        // Perhatikan versi SDK sekarang menggunakan 16.0.0
+        import { Client, Databases, Storage, ID, Query, Account } from 'https://cdn.jsdelivr.net/npm/appwrite@16.0.0/+esm';
 
-const account = new Account(client);
+        // --- KONFIGURASI APPWRITE ---
+        const client = new Client()
+            .setEndpoint('https://sgp.cloud.appwrite.io/v1') 
+            .setProject('6a13b3dc00064ce155ef');             
 
-let currentLang = 'id';
+        const databases = new Databases(client);
+        const storage = new Storage(client);
+        const account = new Account(client);
 
-// =====================================================
-// SETUP 2FA GOOGLE AUTHENTICATOR
-// =====================================================
-async function setup2FA() {
+        const APPWRITE_DB_ID = '6a13b4070009849eaeb6';        
+        const APPWRITE_COL_ID = 'riwayat_pembayaran';            
+        const APPWRITE_BUCKET_ID = '6a13b7e10012dc63a2b5';         
+        const TOTAL_TENOR_BULAN = 240; 
 
-    try {
+        let allData = [];
+        let currentLang = 'en';
 
-        const user = await account.get();
+        // Dictionary
+        const translations = {
+            en: {
+                login_title: "Mortgage Portal Login", login_subtitle: "Please sign in to manage your payments.", username_label: "Email Address", password_label: "Password", login_btn: "Login",
+                mfa_title: "Two-Factor Auth", mfa_subtitle: "Enter the 6-digit code from Google Authenticator.", setup_2fa_btn: "🛡️ Setup 2FA", scan_qr_title: "Scan QR Code", scan_qr_desc: "Open Google Authenticator and scan this QR code.",
+                nav_input: "Payment Input", nav_history: "Payment History", logout_btn: "Logout", type_label: "Type", bank_info_title: "Receiver Account Information:", code_label: "Code", bank_label: "Bank", acc_no_label: "Acc No", name_label: "Name", form_date: "Payment Date", form_method: "Payment Method", select_method: "Select Method", form_amount: "Amount (IDR)", form_proof: "Proof of Payment", submit_btn: "Submit Payment", loading_msg: "Processing... Please wait.", history_title: "Payment History", total_amount_label: "Grand Total Amount:", progress_label: "Installment Progress (20 Years):", months_label: "Months", remaining_label: "Remaining", left_label: "left", all_months: "All Months", all_years: "All Years", search_btn: "Search", reset_btn: "Reset", print_btn: "Print", th_date: "Date", th_method: "Method", th_amount: "Amount", th_receipt: "Receipt", th_actions: "Actions", edit_title: "Edit Payment", cancel_btn: "Cancel", save_btn: "Save", no_records: "No records.", alert_success: "Success!", confirm_delete: "Delete record?", view_receipt: "View"
+            },
+            id: {
+                login_title: "Login Portal KPR", login_subtitle: "Silakan masuk untuk mengelola pembayaran Anda.", username_label: "Alamat Email", password_label: "Kata Sandi", login_btn: "Masuk",
+                mfa_title: "Otentikasi Dua Langkah", mfa_subtitle: "Masukkan 6 digit kode dari Google Authenticator.", setup_2fa_btn: "🛡️ Setup 2FA", scan_qr_title: "Pindai Kode QR", scan_qr_desc: "Buka Google Authenticator lalu pindai QR ini untuk integrasi.",
+                nav_input: "Input Pembayaran", nav_history: "Riwayat Pembayaran", logout_btn: "Keluar", type_label: "Tipe", bank_info_title: "Informasi Rekening Penerima:", code_label: "Kode", bank_label: "Bank", acc_no_label: "No Rek", name_label: "Nama", form_date: "Tanggal Bayar", form_method: "Metode Pembayaran", select_method: "Pilih Metode", form_amount: "Nominal (IDR)", form_proof: "Bukti Pembayaran", submit_btn: "Kirim Pembayaran", loading_msg: "Memproses... Mohon tunggu.", history_title: "Riwayat Pembayaran", total_amount_label: "Total Seluruh Pembayaran:", progress_label: "Progress Cicilan (20 Tahun):", months_label: "Bulan", remaining_label: "Sisa", left_label: "lagi", all_months: "Semua Bulan", all_years: "Semua Tahun", search_btn: "Cari", reset_btn: "Reset", print_btn: "Cetak", th_date: "Tanggal", th_method: "Metode", th_amount: "Nominal", th_receipt: "Bukti", th_actions: "Aksi", edit_title: "Edit Pembayaran", cancel_btn: "Batal", save_btn: "Simpan", no_records: "Tidak ada data.", alert_success: "Berhasil!", confirm_delete: "Hapus data ini?", view_receipt: "Lihat"
+            }
+        };
 
-        if (user.mfa) {
-
-            alert(
-                currentLang === 'id'
-                ? 'Keamanan 2FA sudah aktif di akun Anda.'
-                : '2FA already enabled.'
-            );
-
-            return;
-        }
-
-        // CREATE TOTP
-        const auth = await account.createMfaAuthenticator('totp');
-
-        // SHOW MODAL
-        const modal = document.getElementById('setup2faModal');
-
-        modal.classList.remove('hidden');
-
-        // RENDER QR
-        setTimeout(() => {
-
-            const qrContainer =
-                document.getElementById('qr-container');
-
-            qrContainer.innerHTML = '';
-
-            new QRCode(qrContainer, {
-                text: auth.uri,
-                width: 200,
-                height: 200,
-                colorDark: "#1e1b4b",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
+        function changeLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang][key]) el.innerText = translations[lang][key];
             });
-
-        }, 100);
-
-    } catch (error) {
-
-        console.error(error);
-
-        alert(
-            'Gagal inisialisasi 2FA: ' +
-            error.message
-        );
-    }
-}
-
-// =====================================================
-// CONFIRM 2FA
-// =====================================================
-async function confirmSetup2FA() {
-
-    const code = document
-        .getElementById('setup-2fa-code')
-        .value
-        .trim();
-
-    if (code.length !== 6) {
-
-        alert('Masukkan 6 digit kode.');
-
-        return;
-    }
-
-    try {
-
-        await account.verifyMfaAuthenticator(
-            'totp',
-            code
-        );
-
-        // ENABLE MFA ACCOUNT
-        if (typeof account.updateMfa === 'function') {
-
-            await account.updateMfa(true);
-
-        } else if (typeof account.updateMFA === 'function') {
-
-            await account.updateMFA(true);
+            calculateSummary(allData); renderTable(allData);
         }
 
-        alert('2FA Berhasil Diaktifkan!');
+        // --- SISTEM AUTHENTICATION & MFA ---
+        async function checkAuth() {
+            try {
+                await account.get();
+                document.getElementById('mfa-section').classList.add('hidden');
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                showView('form-view');
+                loadData();
+            } catch (error) {
+                if (error.code === 401 && error.type === 'user_more_factors_required') {
+                    try {
+                        const challenge = await account.createMfaChallenge('totp');
+                        window.currentChallengeId = challenge.$id; 
+                        
+                        document.getElementById('login-section').classList.add('hidden');
+                        document.getElementById('dashboard-section').classList.add('hidden');
+                        document.getElementById('mfa-section').classList.remove('hidden');
+                    } catch (err) {
+                        console.error("Gagal inisialisasi input MFA", err);
+                        alert("Gagal memuat sistem 2FA: " + err.message);
+                        // Tampilkan kembali login jika terjadi error agar layar tidak blank
+                        document.getElementById('mfa-section').classList.add('hidden');
+                        document.getElementById('dashboard-section').classList.add('hidden');
+                        document.getElementById('login-section').classList.remove('hidden');
+                    }
+                } else {
+                    document.getElementById('mfa-section').classList.add('hidden');
+                    document.getElementById('dashboard-section').classList.add('hidden');
+                    document.getElementById('login-section').classList.remove('hidden');
+                }
+            }
+        }
 
-        close2FAModal();
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const btn = document.getElementById('btnLogin');
+            btn.innerText = "Processing..."; btn.disabled = true;
 
-        location.reload();
+            try {
+                await account.createEmailPasswordSession(email, pass);
+            } catch (error) {
+                if (error.type !== 'user_session_already_exists' && error.type !== 'user_more_factors_required') {
+                    alert('Login Gagal: ' + error.message);
+                    btn.innerText = translations[currentLang].login_btn; btn.disabled = false;
+                    return;
+                }
+            }
+            btn.innerText = translations[currentLang].login_btn; btn.disabled = false;
+            checkAuth(); 
+        }
 
-    } catch (error) {
+        async function submitMfa() {
+            const code = document.getElementById('mfa-code').value;
+            const btn = document.getElementById('btnMfa');
+            btn.innerText = "Verifying..."; btn.disabled = true;
+            
+            try {
+                await account.updateMfaChallenge(window.currentChallengeId, code);
+                document.getElementById('mfa-code').value = ''; 
+                checkAuth(); 
+            } catch (error) {
+                alert("Kode salah atau telah kedaluwarsa.");
+            } finally {
+                btn.innerText = "Verify Code"; btn.disabled = false;
+            }
+        }
 
-        console.error(error);
+        async function handleLogout() {
+            try {
+                await account.deleteSession('current');
+                location.reload(); 
+            } catch (error) { location.reload(); }
+        }
 
-        alert(
-            'Kode tidak valid atau gagal aktivasi: '
-            + error.message
-        );
-    }
-}
+        // --- SETUP 2FA GOOGLE AUTHENTICATOR (VERSI DIPERBAIKI) ---
+        async function setup2FA() {
+            try {
+                const user = await account.get();
+                // Jika user sudah memiliki MFA aktif, jangan buat lagi
+                if (user.mfa) {
+                    alert(currentLang === 'id' ? "Keamanan 2FA sudah aktif di akun Anda." : "2FA is already active on your account.");
+                    return;
+                }
 
-// =====================================================
-// CLOSE MODAL
-// =====================================================
-function close2FAModal() {
+                // 1. Buat authenticator (Dapatkan URI untuk QR Code)
+                // HAPUS account.updateMfa(true) dari tahap ini
+                const auth = await account.createMfaAuthenticator('totp');
+                
+                // 2. Tampilkan Modal
+                const modal = document.getElementById('setup2faModal');
+                modal.classList.remove('hidden');
+                
+                // 3. Render QR Code
+                setTimeout(() => {
+                    document.getElementById('qr-container').innerHTML = '';
+                    new QRCode(document.getElementById('qr-container'), {
+                        text: auth.uri, 
+                        width: 200,
+                        height: 200,
+                        colorDark : "#1e1b4b",
+                        colorLight : "#ffffff"
+                    });
+                }, 100);
 
-    document
-        .getElementById('setup2faModal')
-        .classList
-        .add('hidden');
+            } catch (error) { 
+                alert("Gagal inisialisasi 2FA: " + error.message); 
+            }
+        }
 
-    document
-        .getElementById('setup-2fa-code')
-        .value = '';
-}
+        async function confirmSetup2FA() {
+            const code = document.getElementById('setup-2fa-code').value;
+            if (code.length !== 6) {
+                alert(currentLang === 'id' ? "Masukkan 6 digit kode." : "Please enter a 6-digit code.");
+                return;
+            }
+            try {
+                // 1. Verifikasi kode TOTP ke server Appwrite
+                await account.verifyMfaAuthenticator('totp', code);
+                
+                // 2. SETELAH berhasil verifikasi, baru kita paksa aktifkan MFA di level akun.
+                // Menggunakan pengecekan method untuk menghindari error "is not a function"
+                if (typeof account.updateMfa === 'function') {
+                    await account.updateMfa(true);
+                } else if (typeof account.updateMFA === 'function') {
+                    await account.updateMFA(true);
+                }
+                
+                alert(currentLang === 'id' ? "2FA Berhasil Diaktifkan!" : "2FA Successfully Enabled!");
+                close2FAModal();
+                location.reload(); // Refresh untuk memastikan sesi terupdate
+            } catch (error) { 
+                alert(currentLang === 'id' ? "Kode tidak valid atau gagal aktivasi: " + error.message : "Invalid code or activation failed: " + error.message); 
+            }
+        }
 
-// =====================================================
-// LOGOUT
-// =====================================================
-async function handleLogout() {
+        function close2FAModal() { 
+            document.getElementById('setup2faModal').classList.add('hidden');
+            document.getElementById('setup-2fa-code').value = '';
+        }
 
-    try {
+        // --- SISTEM CRUD & UI ---
+        function showView(viewId) {
+            document.getElementById('form-view').classList.add('hidden');
+            document.getElementById('table-view').classList.add('hidden');
+            document.getElementById(viewId).classList.remove('hidden');
+        }
 
-        await account.deleteSession('current');
+        async function loadData() {
+            try {
+                const response = await databases.listDocuments(APPWRITE_DB_ID, APPWRITE_COL_ID, [Query.orderDesc('tanggal_pembayaran')]);
+                allData = response.documents.map(doc => ({ ...doc, id: doc.$id }));
+                renderTable(allData); calculateSummary(allData);
+            } catch (error) {
+                console.error("Gagal load data:", error);
+            }
+        }
 
-    } catch (error) {
+        function calculateSummary(data) {
+            const total = data.reduce((acc, curr) => acc + parseFloat(curr.nominal_pembayaran || 0), 0);
+            document.getElementById('totalGlobal').innerText = formatCurrency(total);
+            const count = data.length; const sisa = TOTAL_TENOR_BULAN - count;
+            const mLabel = translations[currentLang].months_label; const rLabel = translations[currentLang].remaining_label; const lLabel = translations[currentLang].left_label;
+            document.getElementById('tenorProgress').innerText = `${count} / ${TOTAL_TENOR_BULAN} ${mLabel}`;
+            document.getElementById('sisaTenor').innerText = `${rLabel}: ${sisa >= 0 ? sisa : 0} ${mLabel} ${lLabel}`;
+        }
 
-        console.error(error);
+        function renderTable(dataArray) {
+            const tbody = document.getElementById('tableBody');
+            if (dataArray.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4">${translations[currentLang].no_records}</td></tr>`; return;
+            }
+            tbody.innerHTML = dataArray.map(row => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-3 text-sm">${formatDate(row.tanggal_pembayaran)}</td>
+                    <td class="p-3 text-sm">${row.metode_pembayaran}</td>
+                    <td class="p-3 text-sm font-semibold">${formatCurrency(row.nominal_pembayaran)}</td>
+                    <td class="p-3 text-center no-print"><a href="${row.bukti_pembayaran_url}" target="_blank" class="text-blue-600 underline text-xs font-bold">${translations[currentLang].view_receipt}</a></td>
+                    <td class="p-3 text-center no-print">
+                        <button onclick="openEditModal('${row.id}')" class="bg-orange-500 text-white px-2 py-1 rounded text-xs">Edit</button>
+                        <button onclick="deleteData('${row.id}')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Del</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
 
-    }
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader(); reader.readAsDataURL(file);
+                reader.onload = () => { let enc = reader.result.toString().replace(/^data:(.*,)?/, ''); if ((enc.length % 4) > 0) enc += '='.repeat(4 - (enc.length % 4)); resolve(enc); };
+                reader.onerror = error => reject(error);
+            });
+        }
 
-    location.reload();
-}
+        async function submitForm(e) {
+            e.preventDefault(); const btn = document.getElementById('submitBtn'); const loader = document.getElementById('loading');
+            btn.classList.add('hidden'); loader.classList.remove('hidden');
+            const file = document.getElementById('bukti').files[0];
+            const tanggalVal = document.getElementById('tanggal').value, metodeVal = document.getElementById('metode').value, nominalVal = document.getElementById('nominal').value;
+            const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3OT_Y5VmlA2Sx7n1E4AaZaTEO_nD3MI1xK-_B-V8Y1laOupqT9SjtoPI8YtjOsM6BlA/exec';
 
-// EXPORT
-window.setup2FA = setup2FA;
-window.confirmSetup2FA = confirmSetup2FA;
-window.close2FAModal = close2FAModal;
-window.handleLogout = handleLogout;
+            try {
+                const fileResponse = await storage.createFile(APPWRITE_BUCKET_ID, ID.unique(), file);
+                const fileUrl = storage.getFileView(APPWRITE_BUCKET_ID, fileResponse.$id).href;
+                await databases.createDocument(APPWRITE_DB_ID, APPWRITE_COL_ID, ID.unique(), { tanggal_pembayaran: tanggalVal, metode_pembayaran: metodeVal, nominal_pembayaran: parseInt(nominalVal), bukti_pembayaran_url: fileUrl });
+                
+                const fileBase64 = await getBase64(file);
+                fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ base64: fileBase64, fileName: `receipt_${Date.now()}.${file.name.split('.').pop()}`, mimeType: file.type, tanggal: tanggalVal, metode: metodeVal, nominal: nominalVal }) }).catch(err => console.error("Gagal backup ke Drive:", err));
+                
+                alert(translations[currentLang].alert_success); document.getElementById('kprForm').reset(); showView('table-view'); loadData();
+            } catch (err) { alert("Error: " + err.message); 
+            } finally { btn.classList.remove('hidden'); loader.classList.add('hidden'); }
+        }
 
-</script>
+        async function deleteData(id) {
+            if (confirm(translations[currentLang].confirm_delete)) { try { await databases.deleteDocument(APPWRITE_DB_ID, APPWRITE_COL_ID, id); loadData(); } catch(err) { alert("Gagal menghapus data: " + err.message); } }
+        }
+        function openEditModal(id) {
+            const item = allData.find(d => d.id == id);
+            document.getElementById('editId').value = item.id; document.getElementById('editTanggal').value = item.tanggal_pembayaran; document.getElementById('editMetode').value = item.metode_pembayaran; document.getElementById('editNominal').value = item.nominal_pembayaran; document.getElementById('editModal').classList.replace('hidden', 'flex');
+        }
+        function closeEditModal() { document.getElementById('editModal').classList.replace('flex', 'hidden'); }
+        
+        async function saveEdit() {
+            const id = document.getElementById('editId').value;
+            try { await databases.updateDocument(APPWRITE_DB_ID, APPWRITE_COL_ID, id, { tanggal_pembayaran: document.getElementById('editTanggal').value, metode_pembayaran: document.getElementById('editMetode').value, nominal_pembayaran: parseInt(document.getElementById('editNominal').value) }); closeEditModal(); loadData(); } catch(err) { alert("Gagal update: " + err.message); }
+        }
 
+        function formatCurrency(num) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(num); }
+        function formatDate(str) { const [y,m,d] = str.split('-'); return `${d}/${m}/${y}`; }
+        function applyFilter() { const m = document.getElementById('filterMonth').value; const y = document.getElementById('filterYear').value; const filtered = allData.filter(r => { const [ry, rm] = r.tanggal_pembayaran.split('-'); return (m === "" || rm === m) && (y === "" || ry === y); }); renderTable(filtered); }
+        function resetFilter() { renderTable(allData); }
+        function exportExcel() {
+            if (allData.length === 0) { alert(translations[currentLang].no_records); return; }
+            const excelData = allData.map((row, index) => ({ "No": index + 1, "Tanggal Pembayaran": formatDate(row.tanggal_pembayaran), "Metode Pembayaran": row.metode_pembayaran, "Nominal (IDR)": row.nominal_pembayaran, "Link Bukti": row.bukti_pembayaran_url }));
+            const worksheet = XLSX.utils.json_to_sheet(excelData); const workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, "Riwayat Pembayaran"); XLSX.writeFile(workbook, "Riwayat_Pembayaran_KPR.xlsx");
+        }
+        function exportPDF() {
+            if (allData.length === 0) { alert(translations[currentLang].no_records); return; }
+            const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.setFontSize(16); const title = translations[currentLang].history_title + " - Pesona Kahuripan 9"; doc.text(title, 14, 20);
+            const tableColumn = ["No", translations[currentLang].th_date, translations[currentLang].th_method, translations[currentLang].th_amount]; const tableRows = [];
+            allData.forEach((row, index) => { tableRows.push([index + 1, formatDate(row.tanggal_pembayaran), row.metode_pembayaran, formatCurrency(row.nominal_pembayaran)]); });
+            doc.autoTable({ head: [tableColumn], body: tableRows, startY: 30, theme: 'grid', headStyles: { fillColor: [79, 70, 229] }, styles: { fontSize: 10 } }); doc.save("Riwayat_Pembayaran_KPR.pdf");
+        }
+
+        window.changeLanguage = changeLanguage; window.handleLogin = handleLogin; window.handleLogout = handleLogout; window.showView = showView; window.loadData = loadData; window.submitForm = submitForm; window.deleteData = deleteData; window.openEditModal = openEditModal; window.closeEditModal = closeEditModal; window.saveEdit = saveEdit; window.applyFilter = applyFilter; window.resetFilter = resetFilter; window.exportExcel = exportExcel; window.exportPDF = exportPDF; window.setup2FA = setup2FA; window.confirmSetup2FA = confirmSetup2FA; window.close2FAModal = close2FAModal; window.submitMfa = submitMfa;
+
+        window.onload = () => { changeLanguage('en'); checkAuth(); };
+    </script>
 </body>
 </html>
