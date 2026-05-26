@@ -54,7 +54,7 @@
         </div>
         <div class="space-y-4">
             <div>
-                <input type="text" id="mfa-code" class="w-full p-3 border rounded text-center text-xl tracking-[0.5em] font-bold" placeholder="000000" maxlength="6">
+                <input type="text" id="mfa-code" class="w-full p-3 border rounded text-center text-xl tracking-[0.5em] font-bold" placeholder="000000" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
             </div>
             <button id="btnMfa" onclick="submitMfa()" class="w-full bg-indigo-800 text-white py-2 rounded font-bold hover:bg-indigo-900">Verify Code</button>
             <button onclick="handleLogout()" data-i18n="cancel_btn" class="w-full text-gray-500 py-2 underline text-sm">Cancel</button>
@@ -206,7 +206,7 @@
             <div id="qr-container" class="flex justify-center p-4 bg-gray-50 border rounded-lg mb-4 mx-auto w-[230px] h-[230px]">
                 </div>
             
-            <input type="text" id="setup-2fa-code" class="w-full p-3 border rounded text-center text-xl tracking-[0.5em] font-bold mb-4" placeholder="000000" maxlength="6">
+            <input type="text" id="setup-2fa-code" class="w-full p-3 border rounded text-center text-xl tracking-[0.5em] font-bold mb-4" placeholder="000000" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
             
             <div class="flex justify-between gap-2">
                 <button onclick="close2FAModal()" data-i18n="cancel_btn" class="w-1/2 px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300">Cancel</button>
@@ -216,7 +216,6 @@
     </div>
 
     <script type="module">
-        // Perhatikan versi SDK sekarang menggunakan 16.0.0
         import { Client, Databases, Storage, ID, Query, Account } from 'https://cdn.jsdelivr.net/npm/appwrite@16.0.0/+esm';
 
         // --- KONFIGURASI APPWRITE ---
@@ -280,7 +279,6 @@
                     } catch (err) {
                         console.error("Gagal inisialisasi input MFA", err);
                         alert("Gagal memuat sistem 2FA: " + err.message);
-                        // Tampilkan kembali login jika terjadi error agar layar tidak blank
                         document.getElementById('mfa-section').classList.add('hidden');
                         document.getElementById('dashboard-section').classList.add('hidden');
                         document.getElementById('login-section').classList.remove('hidden');
@@ -344,38 +342,32 @@
                     return;
                 }
 
+                // DI KODE LAMA, ADA account.updateMfa(true) DI SINI. ITU SALAH DAN SUDAH SAYA HAPUS.
                 const auth = await account.createMfaAuthenticator('totp');
                 
                 document.getElementById('setup2faModal').classList.remove('hidden');
                 document.getElementById('qr-container').innerHTML = '';
                 
-                setTimeout(() => {
-                    new QRCode(document.getElementById('qr-container'), {
-                        text: auth.uri, 
-                        width: 200,
-                        height: 200,
-                        colorDark : "#1e1b4b", 
-                        colorLight : "#ffffff"
-                    });
-                }, 100);
+                new QRCode(document.getElementById('qr-container'), {
+                    text: auth.uri, 
+                    width: 200,
+                    height: 200,
+                    colorDark : "#1e1b4b", 
+                    colorLight : "#ffffff"
+                });
 
-            } catch (error) { 
-                alert("Gagal inisialisasi 2FA: " + error.message); 
-                console.error(error);
-            }
+            } catch (error) { alert("Gagal inisialisasi 2FA: " + error.message); }
         }
 
         async function confirmSetup2FA() {
             const btn = document.querySelector('button[onclick="confirmSetup2FA()"]');
             const originalText = btn.innerText;
-            
-            btn.innerText = "Memproses..."; 
+            btn.innerText = "Memproses...";
             btn.disabled = true;
 
             try {
-                // Ambil input dan hapus spasi jika tidak sengaja terketik
                 let code = document.getElementById('setup-2fa-code').value;
-                code = code.replace(/\s+/g, ''); 
+                code = code.replace(/\s+/g, ''); // Hapus spasi
 
                 if (code.length !== 6) {
                     alert(currentLang === 'id' ? "Kode harus 6 digit angka!" : "Code must be 6 digits!");
@@ -384,22 +376,20 @@
                     return;
                 }
 
-                // 1. Verifikasi kode
+                // 1. Verifikasi Kode Dulu
                 await account.verifyMfaAuthenticator('totp', code);
-                
-                // 2. Aktifkan MFA di akun
-                if (typeof account.updateMfa === 'function') {
+
+                // 2. Jika sukses, baru aktifkan MFA di Appwrite
+                try {
                     await account.updateMfa(true);
-                } else if (typeof account.updateMFA === 'function') {
-                    await account.updateMFA(true);
+                } catch(updateErr) {
+                    console.log("MFA dipasang tapi gagal force-update:", updateErr);
                 }
 
                 alert(currentLang === 'id' ? "2FA Berhasil Diaktifkan! Login berikutnya akan meminta PIN." : "2FA Successfully Enabled!");
                 close2FAModal();
-                location.reload(); 
             } catch (error) { 
-                alert("Kode tidak valid atau kadaluarsa: " + error.message); 
-                console.error(error);
+                alert("Kode tidak valid: " + error.message); 
             } finally {
                 btn.innerText = originalText;
                 btn.disabled = false;
