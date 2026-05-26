@@ -216,7 +216,8 @@
     </div>
 
     <script type="module">
-        import { Client, Databases, Storage, ID, Query, Account } from 'https://cdn.jsdelivr.net/npm/appwrite@14.0.0/+esm';
+        // Perhatikan versi SDK sekarang menggunakan 16.0.0
+        import { Client, Databases, Storage, ID, Query, Account } from 'https://cdn.jsdelivr.net/npm/appwrite@16.0.0/+esm';
 
         // --- KONFIGURASI APPWRITE ---
         const client = new Client()
@@ -262,31 +263,37 @@
         async function checkAuth() {
             try {
                 await account.get();
-                document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('mfa-section').classList.add('hidden');
+                document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('dashboard-section').classList.remove('hidden');
                 showView('form-view');
                 loadData();
             } catch (error) {
                 if (error.code === 401 && error.type === 'user_more_factors_required') {
                     try {
-                        const challenge = await account.createMFAChallenge('totp');
+                        const challenge = await account.createMfaChallenge('totp');
                         window.currentChallengeId = challenge.$id; 
                         
                         document.getElementById('login-section').classList.add('hidden');
+                        document.getElementById('dashboard-section').classList.add('hidden');
                         document.getElementById('mfa-section').classList.remove('hidden');
                     } catch (err) {
                         console.error("Gagal inisialisasi input MFA", err);
+                        alert("Gagal memuat sistem 2FA: " + err.message);
+                        // Tampilkan kembali login jika terjadi error agar layar tidak blank
+                        document.getElementById('mfa-section').classList.add('hidden');
+                        document.getElementById('dashboard-section').classList.add('hidden');
+                        document.getElementById('login-section').classList.remove('hidden');
                     }
                 } else {
-                    document.getElementById('login-section').classList.remove('hidden');
-                    document.getElementById('dashboard-section').classList.add('hidden');
                     document.getElementById('mfa-section').classList.add('hidden');
+                    document.getElementById('dashboard-section').classList.add('hidden');
+                    document.getElementById('login-section').classList.remove('hidden');
                 }
             }
         }
 
-       async function handleLogin() {
+        async function handleLogin() {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
             const btn = document.getElementById('btnLogin');
@@ -295,15 +302,12 @@
             try {
                 await account.createEmailPasswordSession(email, pass);
             } catch (error) {
-                // Jika error-nya karena butuh 2FA ATAU sesi sudah ada, biarkan proses berlanjut
                 if (error.type !== 'user_session_already_exists' && error.type !== 'user_more_factors_required') {
                     alert('Login Gagal: ' + error.message);
                     btn.innerText = translations[currentLang].login_btn; btn.disabled = false;
                     return;
                 }
             }
-            
-            // Lanjut ke pengecekan MFA atau Dashboard
             btn.innerText = translations[currentLang].login_btn; btn.disabled = false;
             checkAuth(); 
         }
@@ -314,7 +318,7 @@
             btn.innerText = "Verifying..."; btn.disabled = true;
             
             try {
-                await account.updateMFAChallenge(window.currentChallengeId, code);
+                await account.updateMfaChallenge(window.currentChallengeId, code);
                 document.getElementById('mfa-code').value = ''; 
                 checkAuth(); 
             } catch (error) {
@@ -340,8 +344,8 @@
                     return;
                 }
 
-                await account.updateMFA(true);
-                const auth = await account.createAuthenticator('totp');
+                await account.updateMfa(true);
+                const auth = await account.createMfaAuthenticator('totp');
                 
                 document.getElementById('setup2faModal').classList.remove('hidden');
                 document.getElementById('qr-container').innerHTML = '';
@@ -360,7 +364,7 @@
         async function confirmSetup2FA() {
             const code = document.getElementById('setup-2fa-code').value;
             try {
-                await account.verifyAuthenticator('totp', code);
+                await account.verifyMfaAuthenticator('totp', code);
                 alert(currentLang === 'id' ? "2FA Berhasil Diaktifkan! Login berikutnya akan meminta PIN." : "2FA Successfully Enabled!");
                 close2FAModal();
             } catch (error) { alert("Kode tidak valid: " + error.message); }
