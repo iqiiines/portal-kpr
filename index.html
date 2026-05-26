@@ -8,6 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         @media print {
@@ -26,7 +28,6 @@
         </select>
     </div>
 
-    <!-- Login Section di-hidden secara default sampai pengecekan Auth selesai -->
     <div id="login-section" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg mt-10 border-t-8 border-indigo-600 hidden">
         <div class="text-center mb-6">
             <img src="pk_group.png" alt="Logo" class="h-20 mx-auto mb-4 object-contain" onerror="this.style.display='none'">
@@ -46,8 +47,21 @@
         </div>
     </div>
 
+    <div id="mfa-section" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg mt-10 border-t-8 border-indigo-600 hidden">
+        <div class="text-center mb-6">
+            <h2 data-i18n="mfa_title" class="text-2xl font-bold text-gray-800">Two-Factor Auth</h2>
+            <p data-i18n="mfa_subtitle" class="text-sm text-gray-500">Enter the 6-digit code from Google Authenticator.</p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <input type="text" id="mfa-code" class="w-full p-3 border rounded text-center text-xl tracking-[0.5em] font-bold" placeholder="000000" maxlength="6">
+            </div>
+            <button id="btnMfa" onclick="submitMfa()" class="w-full bg-indigo-800 text-white py-2 rounded font-bold hover:bg-indigo-900">Verify Code</button>
+            <button onclick="handleLogout()" data-i18n="cancel_btn" class="w-full text-gray-500 py-2 underline text-sm">Cancel</button>
+        </div>
+    </div>
+
     <div id="dashboard-section" class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg hidden container-box">
-        
         <div class="flex justify-between items-center mb-6 no-print border-b pb-4">
             <div class="flex items-center gap-4">
                 <img src="pk_group.png" alt="Logo" class="h-10 hidden sm:block object-contain" onerror="this.style.display='none'">
@@ -56,7 +70,10 @@
                     <button onclick="showView('table-view'); loadData();" data-i18n="nav_history" class="bg-indigo-800 text-white px-4 py-2 rounded hover:bg-indigo-900">Payment History</button>
                 </div>
             </div>
-            <button onclick="handleLogout()" data-i18n="logout_btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Logout</button>
+            <div class="space-x-2 flex">
+                <button onclick="setup2FA()" data-i18n="setup_2fa_btn" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 font-semibold shadow-sm">🛡️ Setup 2FA</button>
+                <button onclick="handleLogout()" data-i18n="logout_btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Logout</button>
+            </div>
         </div>
 
         <div id="form-view" class="hidden">
@@ -116,7 +133,6 @@
 
         <div id="table-view" class="hidden">
             <h2 data-i18n="history_title" class="text-2xl font-bold mb-4">Payment History</h2>
-
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div class="bg-indigo-50 p-4 rounded-lg border-l-4 border-indigo-600">
                     <p data-i18n="total_amount_label" class="text-sm font-semibold text-gray-600 uppercase">Grand Total Amount:</p>
@@ -128,7 +144,6 @@
                     <p id="sisaTenor" class="text-xs text-green-600 font-medium">Remaining: 240 Months left</p>
                 </div>
             </div>
-
             <div class="bg-gray-100 p-4 rounded-lg mb-6 flex flex-wrap gap-3 items-center no-print">
                 <select id="filterMonth" class="border p-1 rounded text-sm">
                     <option value="" data-i18n="all_months">All Months</option>
@@ -146,7 +161,6 @@
                     <button onclick="window.print()" data-i18n="print_btn" class="bg-gray-800 text-white px-3 py-1 rounded text-sm">Print</button>
                 </div>
             </div>
-
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -184,121 +198,54 @@
         </div>
     </div>
 
+    <div id="setup2faModal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex justify-center items-center z-[100] no-print">
+        <div class="bg-white p-6 rounded-lg w-full max-w-sm text-center shadow-xl">
+            <h3 data-i18n="scan_qr_title" class="text-xl font-bold mb-2 text-indigo-800">Scan QR Code</h3>
+            <p data-i18n="scan_qr_desc" class="text-sm text-gray-600 mb-4">Scan this using Google Authenticator, then enter the 6-digit code below to confirm setup.</p>
+            
+            <div id="qr-container" class="flex justify-center p-4 bg-gray-50 border rounded-lg mb-4 mx-auto w-[230px] h-[230px]">
+                </div>
+            
+            <input type="text" id="setup-2fa-code" class="w-full p-3 border rounded text-center text-xl tracking-[0.5em] font-bold mb-4" placeholder="000000" maxlength="6">
+            
+            <div class="flex justify-between gap-2">
+                <button onclick="close2FAModal()" data-i18n="cancel_btn" class="w-1/2 px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300">Cancel</button>
+                <button onclick="confirmSetup2FA()" class="w-1/2 px-4 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700">Confirm 2FA</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { Client, Databases, Storage, ID, Query, Account } from 'https://cdn.jsdelivr.net/npm/appwrite@14.0.0/+esm';
 
         // --- KONFIGURASI APPWRITE ---
-        const client = new Client();
-        client
+        const client = new Client()
             .setEndpoint('https://sgp.cloud.appwrite.io/v1') 
             .setProject('6a13b3dc00064ce155ef');             
 
         const databases = new Databases(client);
         const storage = new Storage(client);
-        const account = new Account(client); // Tambahkan Account module
+        const account = new Account(client);
 
         const APPWRITE_DB_ID = '6a13b4070009849eaeb6';        
         const APPWRITE_COL_ID = 'riwayat_pembayaran';            
         const APPWRITE_BUCKET_ID = '6a13b7e10012dc63a2b5';         
-
         const TOTAL_TENOR_BULAN = 240; 
 
         let allData = [];
         let currentLang = 'en';
 
-        // Translation Dictionary (Username diubah jadi Email Address)
+        // Dictionary
         const translations = {
             en: {
-                login_title: "Mortgage Portal Login",
-                login_subtitle: "Please sign in to manage your payments.",
-                username_label: "Email Address",
-                password_label: "Password",
-                login_btn: "Login",
-                nav_input: "Payment Input",
-                nav_history: "Payment History",
-                logout_btn: "Logout",
-                type_label: "Type",
-                bank_info_title: "Receiver Account Information:",
-                code_label: "Code",
-                bank_label: "Bank",
-                acc_no_label: "Acc No",
-                name_label: "Name",
-                form_date: "Payment Date",
-                form_method: "Payment Method",
-                select_method: "Select Method",
-                form_amount: "Amount (IDR)",
-                form_proof: "Proof of Payment",
-                submit_btn: "Submit Payment",
-                loading_msg: "Processing... Please wait.",
-                history_title: "Payment History",
-                total_amount_label: "Grand Total Amount:",
-                progress_label: "Installment Progress (20 Years):",
-                months_label: "Months",
-                remaining_label: "Remaining",
-                left_label: "left",
-                all_months: "All Months",
-                all_years: "All Years",
-                search_btn: "Search",
-                reset_btn: "Reset",
-                print_btn: "Print",
-                th_date: "Date",
-                th_method: "Method",
-                th_amount: "Amount",
-                th_receipt: "Receipt",
-                th_actions: "Actions",
-                edit_title: "Edit Payment",
-                cancel_btn: "Cancel",
-                save_btn: "Save",
-                no_records: "No records.",
-                alert_success: "Success!",
-                confirm_delete: "Delete record?",
-                view_receipt: "View"
+                login_title: "Mortgage Portal Login", login_subtitle: "Please sign in to manage your payments.", username_label: "Email Address", password_label: "Password", login_btn: "Login",
+                mfa_title: "Two-Factor Auth", mfa_subtitle: "Enter the 6-digit code from Google Authenticator.", setup_2fa_btn: "🛡️ Setup 2FA", scan_qr_title: "Scan QR Code", scan_qr_desc: "Open Google Authenticator and scan this QR code.",
+                nav_input: "Payment Input", nav_history: "Payment History", logout_btn: "Logout", type_label: "Type", bank_info_title: "Receiver Account Information:", code_label: "Code", bank_label: "Bank", acc_no_label: "Acc No", name_label: "Name", form_date: "Payment Date", form_method: "Payment Method", select_method: "Select Method", form_amount: "Amount (IDR)", form_proof: "Proof of Payment", submit_btn: "Submit Payment", loading_msg: "Processing... Please wait.", history_title: "Payment History", total_amount_label: "Grand Total Amount:", progress_label: "Installment Progress (20 Years):", months_label: "Months", remaining_label: "Remaining", left_label: "left", all_months: "All Months", all_years: "All Years", search_btn: "Search", reset_btn: "Reset", print_btn: "Print", th_date: "Date", th_method: "Method", th_amount: "Amount", th_receipt: "Receipt", th_actions: "Actions", edit_title: "Edit Payment", cancel_btn: "Cancel", save_btn: "Save", no_records: "No records.", alert_success: "Success!", confirm_delete: "Delete record?", view_receipt: "View"
             },
             id: {
-                login_title: "Login Portal KPR",
-                login_subtitle: "Silakan masuk untuk mengelola pembayaran Anda.",
-                username_label: "Alamat Email",
-                password_label: "Kata Sandi",
-                login_btn: "Masuk",
-                nav_input: "Input Pembayaran",
-                nav_history: "Riwayat Pembayaran",
-                logout_btn: "Keluar",
-                type_label: "Tipe",
-                bank_info_title: "Informasi Rekening Penerima:",
-                code_label: "Kode",
-                bank_label: "Bank",
-                acc_no_label: "No Rek",
-                name_label: "Nama",
-                form_date: "Tanggal Bayar",
-                form_method: "Metode Pembayaran",
-                select_method: "Pilih Metode",
-                form_amount: "Nominal (IDR)",
-                form_proof: "Bukti Pembayaran",
-                submit_btn: "Kirim Pembayaran",
-                loading_msg: "Memproses... Mohon tunggu.",
-                history_title: "Riwayat Pembayaran",
-                total_amount_label: "Total Seluruh Pembayaran:",
-                progress_label: "Progress Cicilan (20 Tahun):",
-                months_label: "Bulan",
-                remaining_label: "Sisa",
-                left_label: "lagi",
-                all_months: "Semua Bulan",
-                all_years: "Semua Tahun",
-                search_btn: "Cari",
-                reset_btn: "Reset",
-                print_btn: "Cetak",
-                th_date: "Tanggal",
-                th_method: "Metode",
-                th_amount: "Nominal",
-                th_receipt: "Bukti",
-                th_actions: "Aksi",
-                edit_title: "Edit Pembayaran",
-                cancel_btn: "Batal",
-                save_btn: "Simpan",
-                no_records: "Tidak ada data.",
-                alert_success: "Berhasil!",
-                confirm_delete: "Hapus data ini?",
-                view_receipt: "Lihat"
+                login_title: "Login Portal KPR", login_subtitle: "Silakan masuk untuk mengelola pembayaran Anda.", username_label: "Alamat Email", password_label: "Kata Sandi", login_btn: "Masuk",
+                mfa_title: "Otentikasi Dua Langkah", mfa_subtitle: "Masukkan 6 digit kode dari Google Authenticator.", setup_2fa_btn: "🛡️ Setup 2FA", scan_qr_title: "Pindai Kode QR", scan_qr_desc: "Buka Google Authenticator lalu pindai QR ini untuk integrasi.",
+                nav_input: "Input Pembayaran", nav_history: "Riwayat Pembayaran", logout_btn: "Keluar", type_label: "Tipe", bank_info_title: "Informasi Rekening Penerima:", code_label: "Kode", bank_label: "Bank", acc_no_label: "No Rek", name_label: "Nama", form_date: "Tanggal Bayar", form_method: "Metode Pembayaran", select_method: "Pilih Metode", form_amount: "Nominal (IDR)", form_proof: "Bukti Pembayaran", submit_btn: "Kirim Pembayaran", loading_msg: "Memproses... Mohon tunggu.", history_title: "Riwayat Pembayaran", total_amount_label: "Total Seluruh Pembayaran:", progress_label: "Progress Cicilan (20 Tahun):", months_label: "Bulan", remaining_label: "Sisa", left_label: "lagi", all_months: "Semua Bulan", all_years: "Semua Tahun", search_btn: "Cari", reset_btn: "Reset", print_btn: "Cetak", th_date: "Tanggal", th_method: "Metode", th_amount: "Nominal", th_receipt: "Bukti", th_actions: "Aksi", edit_title: "Edit Pembayaran", cancel_btn: "Batal", save_btn: "Simpan", no_records: "Tidak ada data.", alert_success: "Berhasil!", confirm_delete: "Hapus data ini?", view_receipt: "Lihat"
             }
         };
 
@@ -306,26 +253,41 @@
             currentLang = lang;
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (translations[lang][key]) {
-                    el.innerText = translations[lang][key];
-                }
+                if (translations[lang][key]) el.innerText = translations[lang][key];
             });
-            calculateSummary(allData);
-            renderTable(allData);
+            calculateSummary(allData); renderTable(allData);
         }
 
-        // --- SISTEM AUTHENTICATION BARU ---
+        // --- SISTEM AUTHENTICATION & MFA ---
         async function checkAuth() {
             try {
-                // Mengecek apakah sudah ada sesi login aktif
+                // Berusaha menarik data akun secara penuh
                 await account.get();
-                // Jika sukses, langsung masuk ke dashboard
+                // Jika sukses, user telah terautentikasi penuh (termasuk 2FA jika aktif)
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('mfa-section').classList.add('hidden');
                 document.getElementById('dashboard-section').classList.remove('hidden');
                 showView('form-view');
                 loadData();
             } catch (error) {
-                // Jika gagal (belum login), tampilkan form login
-                document.getElementById('login-section').classList.remove('hidden');
+                // Jika server meminta validasi faktor tambahan (MFA)
+                if (error.code === 401 && error.type === 'user_more_factors_required') {
+                    try {
+                        // Memulai sesi pengecekan 2FA
+                        const challenge = await account.createMfaChallenge('totp');
+                        window.currentChallengeId = challenge.$id; // Simpan ID Challenge
+                        
+                        document.getElementById('login-section').classList.add('hidden');
+                        document.getElementById('mfa-section').classList.remove('hidden');
+                    } catch (err) {
+                        console.error("Gagal inisialisasi input MFA", err);
+                    }
+                } else {
+                    // Berarti belum login sama sekali
+                    document.getElementById('login-section').classList.remove('hidden');
+                    document.getElementById('dashboard-section').classList.add('hidden');
+                    document.getElementById('mfa-section').classList.add('hidden');
+                }
             }
         }
 
@@ -333,22 +295,36 @@
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
             const btn = document.getElementById('btnLogin');
-            
-            btn.innerText = "Processing...";
-            btn.disabled = true;
+            btn.innerText = "Processing..."; btn.disabled = true;
 
             try {
-                // Membuat session login menggunakan fitur Auth Appwrite
                 await account.createEmailPasswordSession(email, pass);
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('dashboard-section').classList.remove('hidden');
-                showView('form-view');
-                loadData();
             } catch (error) {
-                alert('Login Gagal: ' + error.message);
+                // Abaikan error jika dibilang user sudah punya sesi aktif
+                if (error.type !== 'user_session_already_exists') {
+                    alert('Login Gagal: ' + error.message);
+                    btn.innerText = translations[currentLang].login_btn; btn.disabled = false;
+                    return;
+                }
+            }
+            btn.innerText = translations[currentLang].login_btn; btn.disabled = false;
+            checkAuth(); // Lanjut ke validasi MFA / Masuk langsung
+        }
+
+        async function submitMfa() {
+            const code = document.getElementById('mfa-code').value;
+            const btn = document.getElementById('btnMfa');
+            btn.innerText = "Verifying..."; btn.disabled = true;
+            
+            try {
+                // Mengirim kode 6 digit ke server
+                await account.updateMfaChallenge(window.currentChallengeId, code);
+                document.getElementById('mfa-code').value = ''; // Reset
+                checkAuth(); // Redirect ke Dashboard
+            } catch (error) {
+                alert("Kode salah atau telah kedaluwarsa.");
             } finally {
-                btn.innerText = translations[currentLang].login_btn;
-                btn.disabled = false;
+                btn.innerText = "Verify Code"; btn.disabled = false;
             }
         }
 
@@ -356,11 +332,56 @@
             try {
                 await account.deleteSession('current');
                 location.reload(); 
-            } catch (error) {
-                alert("Gagal Logout: " + error.message);
-            }
+            } catch (error) { location.reload(); }
         }
 
+        // --- SETUP 2FA GOOGLE AUTHENTICATOR ---
+        async function setup2FA() {
+            try {
+                const user = await account.get();
+                // Cek apakah akun user sudah menyalakan MFA
+                if (user.mfa) {
+                    alert(currentLang === 'id' ? "Keamanan 2FA sudah aktif di akun Anda." : "2FA is already active on your account.");
+                    return;
+                }
+
+                // Wajibkan 2FA untuk akun ini
+                await account.updateMfa(true);
+                // Siapkan kunci TOTP (Google Authenticator)
+                const auth = await account.createAuthenticator('totp');
+                
+                // Munculkan Modal
+                document.getElementById('setup2faModal').classList.remove('hidden');
+                document.getElementById('qr-container').innerHTML = '';
+                
+                // Buat QR Code menggunakan library
+                new QRCode(document.getElementById('qr-container'), {
+                    text: auth.uri, // URI ini berformat otpauth://...
+                    width: 200,
+                    height: 200,
+                    colorDark : "#1e1b4b", // Indigo Tua
+                    colorLight : "#ffffff"
+                });
+
+            } catch (error) { alert("Gagal inisialisasi 2FA: " + error.message); }
+        }
+
+        async function confirmSetup2FA() {
+            const code = document.getElementById('setup-2fa-code').value;
+            try {
+                // Konfirmasi ke server bahwa kode scan cocok
+                await account.verifyAuthenticator('totp', code);
+                alert(currentLang === 'id' ? "2FA Berhasil Diaktifkan! Login berikutnya akan meminta PIN." : "2FA Successfully Enabled!");
+                close2FAModal();
+            } catch (error) { alert("Kode tidak valid: " + error.message); }
+        }
+
+        function close2FAModal() { 
+            document.getElementById('setup2faModal').classList.add('hidden');
+            document.getElementById('setup-2fa-code').value = '';
+        }
+
+        // --- SISTEM CRUD & UI (TIDAK BERUBAH) ---
         function showView(viewId) {
             document.getElementById('form-view').classList.add('hidden');
             document.getElementById('table-view').classList.add('hidden');
@@ -369,38 +390,19 @@
 
         async function loadData() {
             try {
-                const response = await databases.listDocuments(
-                    APPWRITE_DB_ID,
-                    APPWRITE_COL_ID,
-                    [Query.orderDesc('tanggal_pembayaran')]
-                );
-                
-                allData = response.documents.map(doc => ({
-                    ...doc,
-                    id: doc.$id 
-                }));
-                
-                renderTable(allData);
-                calculateSummary(allData);
+                const response = await databases.listDocuments(APPWRITE_DB_ID, APPWRITE_COL_ID, [Query.orderDesc('tanggal_pembayaran')]);
+                allData = response.documents.map(doc => ({ ...doc, id: doc.$id }));
+                renderTable(allData); calculateSummary(allData);
             } catch (error) {
                 console.error("Gagal load data:", error);
-                if(error.code === 401) {
-                    alert("Sesi kamu telah berakhir. Silakan login kembali.");
-                    handleLogout();
-                }
             }
         }
 
         function calculateSummary(data) {
             const total = data.reduce((acc, curr) => acc + parseFloat(curr.nominal_pembayaran || 0), 0);
             document.getElementById('totalGlobal').innerText = formatCurrency(total);
-            
-            const count = data.length;
-            const sisa = TOTAL_TENOR_BULAN - count;
-            const mLabel = translations[currentLang].months_label;
-            const rLabel = translations[currentLang].remaining_label;
-            const lLabel = translations[currentLang].left_label;
-
+            const count = data.length; const sisa = TOTAL_TENOR_BULAN - count;
+            const mLabel = translations[currentLang].months_label; const rLabel = translations[currentLang].remaining_label; const lLabel = translations[currentLang].left_label;
             document.getElementById('tenorProgress').innerText = `${count} / ${TOTAL_TENOR_BULAN} ${mLabel}`;
             document.getElementById('sisaTenor').innerText = `${rLabel}: ${sisa >= 0 ? sisa : 0} ${mLabel} ${lLabel}`;
         }
@@ -408,8 +410,7 @@
         function renderTable(dataArray) {
             const tbody = document.getElementById('tableBody');
             if (dataArray.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4">${translations[currentLang].no_records}</td></tr>`;
-                return;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4">${translations[currentLang].no_records}</td></tr>`; return;
             }
             tbody.innerHTML = dataArray.map(row => `
                 <tr class="border-b hover:bg-gray-50">
@@ -427,177 +428,66 @@
 
         function getBase64(file) {
             return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => {
-                    let encoded = reader.result.toString().replace(/^data:(.*,)?/, '');
-                    if ((encoded.length % 4) > 0) {
-                        encoded += '='.repeat(4 - (encoded.length % 4));
-                    }
-                    resolve(encoded);
-                };
+                const reader = new FileReader(); reader.readAsDataURL(file);
+                reader.onload = () => { let enc = reader.result.toString().replace(/^data:(.*,)?/, ''); if ((enc.length % 4) > 0) enc += '='.repeat(4 - (enc.length % 4)); resolve(enc); };
                 reader.onerror = error => reject(error);
             });
         }
 
         async function submitForm(e) {
-            e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            const loader = document.getElementById('loading');
+            e.preventDefault(); const btn = document.getElementById('submitBtn'); const loader = document.getElementById('loading');
             btn.classList.add('hidden'); loader.classList.remove('hidden');
-
             const file = document.getElementById('bukti').files[0];
-            
-            const tanggalVal = document.getElementById('tanggal').value;
-            const metodeVal = document.getElementById('metode').value;
-            const nominalVal = document.getElementById('nominal').value;
-
+            const tanggalVal = document.getElementById('tanggal').value, metodeVal = document.getElementById('metode').value, nominalVal = document.getElementById('nominal').value;
             const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3OT_Y5VmlA2Sx7n1E4AaZaTEO_nD3MI1xK-_B-V8Y1laOupqT9SjtoPI8YtjOsM6BlA/exec';
 
             try {
                 const fileResponse = await storage.createFile(APPWRITE_BUCKET_ID, ID.unique(), file);
                 const fileUrl = storage.getFileView(APPWRITE_BUCKET_ID, fileResponse.$id).href;
-
-                await databases.createDocument(APPWRITE_DB_ID, APPWRITE_COL_ID, ID.unique(), {
-                    tanggal_pembayaran: tanggalVal,
-                    metode_pembayaran: metodeVal,
-                    nominal_pembayaran: parseInt(nominalVal),
-                    bukti_pembayaran_url: fileUrl
-                });
-
-                const fileBase64 = await getBase64(file);
-                fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        base64: fileBase64,
-                        fileName: `receipt_${Date.now()}.${file.name.split('.').pop()}`,
-                        mimeType: file.type,
-                        tanggal: tanggalVal,
-                        metode: metodeVal,
-                        nominal: nominalVal
-                    })
-                }).catch(err => console.error("Gagal backup ke Drive:", err));
+                await databases.createDocument(APPWRITE_DB_ID, APPWRITE_COL_ID, ID.unique(), { tanggal_pembayaran: tanggalVal, metode_pembayaran: metodeVal, nominal_pembayaran: parseInt(nominalVal), bukti_pembayaran_url: fileUrl });
                 
-                alert(translations[currentLang].alert_success);
-                document.getElementById('kprForm').reset();
-                showView('table-view'); loadData();
-
-            } catch (err) { 
-                alert("Error: " + err.message); 
-            } finally { 
-                btn.classList.remove('hidden'); loader.classList.add('hidden'); 
-            }
+                const fileBase64 = await getBase64(file);
+                fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ base64: fileBase64, fileName: `receipt_${Date.now()}.${file.name.split('.').pop()}`, mimeType: file.type, tanggal: tanggalVal, metode: metodeVal, nominal: nominalVal }) }).catch(err => console.error("Gagal backup ke Drive:", err));
+                
+                alert(translations[currentLang].alert_success); document.getElementById('kprForm').reset(); showView('table-view'); loadData();
+            } catch (err) { alert("Error: " + err.message); 
+            } finally { btn.classList.remove('hidden'); loader.classList.add('hidden'); }
         }
 
         async function deleteData(id) {
-            if (confirm(translations[currentLang].confirm_delete)) {
-                try {
-                    await databases.deleteDocument(APPWRITE_DB_ID, APPWRITE_COL_ID, id);
-                    loadData();
-                } catch(err) {
-                    alert("Gagal menghapus data: " + err.message);
-                }
-            }
+            if (confirm(translations[currentLang].confirm_delete)) { try { await databases.deleteDocument(APPWRITE_DB_ID, APPWRITE_COL_ID, id); loadData(); } catch(err) { alert("Gagal menghapus data: " + err.message); } }
         }
-
         function openEditModal(id) {
             const item = allData.find(d => d.id == id);
-            document.getElementById('editId').value = item.id;
-            document.getElementById('editTanggal').value = item.tanggal_pembayaran;
-            document.getElementById('editMetode').value = item.metode_pembayaran;
-            document.getElementById('editNominal').value = item.nominal_pembayaran;
-            document.getElementById('editModal').classList.replace('hidden', 'flex');
+            document.getElementById('editId').value = item.id; document.getElementById('editTanggal').value = item.tanggal_pembayaran; document.getElementById('editMetode').value = item.metode_pembayaran; document.getElementById('editNominal').value = item.nominal_pembayaran; document.getElementById('editModal').classList.replace('hidden', 'flex');
         }
-
         function closeEditModal() { document.getElementById('editModal').classList.replace('flex', 'hidden'); }
-
+        
         async function saveEdit() {
             const id = document.getElementById('editId').value;
-            try {
-                await databases.updateDocument(APPWRITE_DB_ID, APPWRITE_COL_ID, id, {
-                    tanggal_pembayaran: document.getElementById('editTanggal').value,
-                    metode_pembayaran: document.getElementById('editMetode').value,
-                    nominal_pembayaran: parseInt(document.getElementById('editNominal').value)
-                });
-                closeEditModal(); loadData();
-            } catch(err) {
-                alert("Gagal update: " + err.message);
-            }
+            try { await databases.updateDocument(APPWRITE_DB_ID, APPWRITE_COL_ID, id, { tanggal_pembayaran: document.getElementById('editTanggal').value, metode_pembayaran: document.getElementById('editMetode').value, nominal_pembayaran: parseInt(document.getElementById('editNominal').value) }); closeEditModal(); loadData(); } catch(err) { alert("Gagal update: " + err.message); }
         }
 
         function formatCurrency(num) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(num); }
         function formatDate(str) { const [y,m,d] = str.split('-'); return `${d}/${m}/${y}`; }
-        
-        function applyFilter() {
-            const m = document.getElementById('filterMonth').value;
-            const y = document.getElementById('filterYear').value;
-            const filtered = allData.filter(r => {
-                const [ry, rm] = r.tanggal_pembayaran.split('-');
-                return (m === "" || rm === m) && (y === "" || ry === y);
-            });
-            renderTable(filtered);
-        }
+        function applyFilter() { const m = document.getElementById('filterMonth').value; const y = document.getElementById('filterYear').value; const filtered = allData.filter(r => { const [ry, rm] = r.tanggal_pembayaran.split('-'); return (m === "" || rm === m) && (y === "" || ry === y); }); renderTable(filtered); }
         function resetFilter() { renderTable(allData); }
-
         function exportExcel() {
             if (allData.length === 0) { alert(translations[currentLang].no_records); return; }
-            const excelData = allData.map((row, index) => ({
-                "No": index + 1,
-                "Tanggal Pembayaran": formatDate(row.tanggal_pembayaran),
-                "Metode Pembayaran": row.metode_pembayaran,
-                "Nominal (IDR)": row.nominal_pembayaran,
-                "Link Bukti": row.bukti_pembayaran_url
-            }));
-            const worksheet = XLSX.utils.json_to_sheet(excelData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Riwayat Pembayaran");
-            XLSX.writeFile(workbook, "Riwayat_Pembayaran_KPR.xlsx");
+            const excelData = allData.map((row, index) => ({ "No": index + 1, "Tanggal Pembayaran": formatDate(row.tanggal_pembayaran), "Metode Pembayaran": row.metode_pembayaran, "Nominal (IDR)": row.nominal_pembayaran, "Link Bukti": row.bukti_pembayaran_url }));
+            const worksheet = XLSX.utils.json_to_sheet(excelData); const workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, "Riwayat Pembayaran"); XLSX.writeFile(workbook, "Riwayat_Pembayaran_KPR.xlsx");
         }
-
         function exportPDF() {
             if (allData.length === 0) { alert(translations[currentLang].no_records); return; }
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.setFontSize(16);
-            const title = translations[currentLang].history_title + " - Pesona Kahuripan 9";
-            doc.text(title, 14, 20);
-            const tableColumn = ["No", translations[currentLang].th_date, translations[currentLang].th_method, translations[currentLang].th_amount];
-            const tableRows = [];
-            allData.forEach((row, index) => {
-                const rowData = [index + 1, formatDate(row.tanggal_pembayaran), row.metode_pembayaran, formatCurrency(row.nominal_pembayaran)];
-                tableRows.push(rowData);
-            });
-            doc.autoTable({
-                head: [tableColumn],
-                body: tableRows,
-                startY: 30,
-                theme: 'grid',
-                headStyles: { fillColor: [79, 70, 229] },
-                styles: { fontSize: 10 }
-            });
-            doc.save("Riwayat_Pembayaran_KPR.pdf");
+            const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.setFontSize(16); const title = translations[currentLang].history_title + " - Pesona Kahuripan 9"; doc.text(title, 14, 20);
+            const tableColumn = ["No", translations[currentLang].th_date, translations[currentLang].th_method, translations[currentLang].th_amount]; const tableRows = [];
+            allData.forEach((row, index) => { tableRows.push([index + 1, formatDate(row.tanggal_pembayaran), row.metode_pembayaran, formatCurrency(row.nominal_pembayaran)]); });
+            doc.autoTable({ head: [tableColumn], body: tableRows, startY: 30, theme: 'grid', headStyles: { fillColor: [79, 70, 229] }, styles: { fontSize: 10 } }); doc.save("Riwayat_Pembayaran_KPR.pdf");
         }
 
-        window.changeLanguage = changeLanguage;
-        window.handleLogin = handleLogin;
-        window.handleLogout = handleLogout;
-        window.showView = showView;
-        window.loadData = loadData;
-        window.submitForm = submitForm;
-        window.deleteData = deleteData;
-        window.openEditModal = openEditModal;
-        window.closeEditModal = closeEditModal;
-        window.saveEdit = saveEdit;
-        window.applyFilter = applyFilter;
-        window.resetFilter = resetFilter;
-        window.exportExcel = exportExcel;
-        window.exportPDF = exportPDF;
+        window.changeLanguage = changeLanguage; window.handleLogin = handleLogin; window.handleLogout = handleLogout; window.showView = showView; window.loadData = loadData; window.submitForm = submitForm; window.deleteData = deleteData; window.openEditModal = openEditModal; window.closeEditModal = closeEditModal; window.saveEdit = saveEdit; window.applyFilter = applyFilter; window.resetFilter = resetFilter; window.exportExcel = exportExcel; window.exportPDF = exportPDF; window.setup2FA = setup2FA; window.confirmSetup2FA = confirmSetup2FA; window.close2FAModal = close2FAModal; window.submitMfa = submitMfa;
 
-        // Inisialisasi awal
-        window.onload = () => {
-            changeLanguage('en');
-            checkAuth(); // Cek sesi login saat web pertama kali dibuka
-        };
+        window.onload = () => { changeLanguage('en'); checkAuth(); };
     </script>
 </body>
 </html>
