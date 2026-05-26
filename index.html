@@ -286,7 +286,7 @@
             }
         }
 
-        async function handleLogin() {
+       async function handleLogin() {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
             const btn = document.getElementById('btnLogin');
@@ -295,12 +295,15 @@
             try {
                 await account.createEmailPasswordSession(email, pass);
             } catch (error) {
-                if (error.type !== 'user_session_already_exists') {
+                // Jika error-nya karena butuh 2FA ATAU sesi sudah ada, biarkan proses berlanjut
+                if (error.type !== 'user_session_already_exists' && error.type !== 'user_more_factors_required') {
                     alert('Login Gagal: ' + error.message);
                     btn.innerText = translations[currentLang].login_btn; btn.disabled = false;
                     return;
                 }
             }
+            
+            // Lanjut ke pengecekan MFA atau Dashboard
             btn.innerText = translations[currentLang].login_btn; btn.disabled = false;
             checkAuth(); 
         }
