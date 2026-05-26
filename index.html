@@ -43,73 +43,7 @@
                 <label data-i18n="password_label" class="block text-sm font-medium text-gray-700">Password</label>
                 <input type="password" id="password" class="w-full p-2 border rounded mt-1" placeholder="Enter password">
             </div>
-            <button id="btnLogin" onclick="handleLogin()" data-i18n="login_btn" class="w-full bg-indigo-600 text-white py-2 rounded font-bold hover:bg-indigo-700 transition">Login</button>
-            
-            <div class="flex justify-between items-center mt-4 text-sm font-semibold">
-                <button onclick="showSection('reset-section')" class="text-indigo-600 hover:text-indigo-800 hover:underline" data-i18n="forgot_password">Forgot Password?</button>
-                <button onclick="showSection('signup-section')" class="text-indigo-600 hover:text-indigo-800 hover:underline" data-i18n="sign_up">Sign Up</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="signup-section" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg mt-10 border-t-8 border-green-600 hidden">
-        <div class="text-center mb-6">
-            <img src="pk_group.png" alt="Logo" class="h-16 mx-auto mb-2 object-contain" onerror="this.style.display='none'">
-            <h2 data-i18n="signup_title" class="text-2xl font-bold text-gray-800">Create an Account</h2>
-            <p data-i18n="signup_subtitle" class="text-sm text-gray-500">Sign up to access the mortgage portal.</p>
-        </div>
-        <div class="space-y-4">
-            <div>
-                <label data-i18n="name_label" class="block text-sm font-medium text-gray-700">Full Name</label>
-                <input type="text" id="reg-name" class="w-full p-2 border rounded mt-1" placeholder="Enter your name">
-            </div>
-            <div>
-                <label data-i18n="username_label" class="block text-sm font-medium text-gray-700">Email Address</label>
-                <input type="email" id="reg-email" class="w-full p-2 border rounded mt-1" placeholder="Enter email">
-            </div>
-            <div>
-                <label data-i18n="password_label" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="reg-password" class="w-full p-2 border rounded mt-1" placeholder="Minimum 8 characters">
-            </div>
-            <button id="btnSignup" onclick="handleSignUp()" data-i18n="signup_btn" class="w-full bg-green-600 text-white py-2 rounded font-bold hover:bg-green-700 transition">Register</button>
-            <div class="text-center mt-4">
-                <button onclick="showSection('login-section')" class="text-sm font-semibold text-gray-500 hover:text-gray-800 hover:underline" data-i18n="back_login">Back to Login</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="reset-section" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg mt-10 border-t-8 border-yellow-500 hidden">
-        <div class="text-center mb-6">
-            <h2 data-i18n="reset_title" class="text-2xl font-bold text-gray-800">Reset Password</h2>
-            <p data-i18n="reset_subtitle" class="text-sm text-gray-500">Enter your email to receive a recovery link.</p>
-        </div>
-        <div class="space-y-4">
-            <div>
-                <label data-i18n="username_label" class="block text-sm font-medium text-gray-700">Email Address</label>
-                <input type="email" id="reset-email" class="w-full p-2 border rounded mt-1" placeholder="Enter email">
-            </div>
-            <button id="btnReset" onclick="handleRequestReset()" data-i18n="send_reset_btn" class="w-full bg-yellow-500 text-white py-2 rounded font-bold hover:bg-yellow-600 transition">Send Recovery Link</button>
-            <div class="text-center mt-4">
-                <button onclick="showSection('login-section')" class="text-sm font-semibold text-gray-500 hover:text-gray-800 hover:underline" data-i18n="back_login">Back to Login</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="new-password-section" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg mt-10 border-t-8 border-blue-600 hidden">
-        <div class="text-center mb-6">
-            <h2 data-i18n="new_pass_title" class="text-2xl font-bold text-gray-800">Set New Password</h2>
-            <p data-i18n="new_pass_subtitle" class="text-sm text-gray-500">Please enter your new password below.</p>
-        </div>
-        <div class="space-y-4">
-            <div>
-                <label data-i18n="password_label" class="block text-sm font-medium text-gray-700">New Password</label>
-                <input type="password" id="new-password" class="w-full p-2 border rounded mt-1" placeholder="Minimum 8 characters">
-            </div>
-            <div>
-                <label data-i18n="confirm_password_label" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                <input type="password" id="confirm-password" class="w-full p-2 border rounded mt-1" placeholder="Retype new password">
-            </div>
-            <button id="btnSaveNewPass" onclick="handleSetNewPassword()" data-i18n="save_new_pass_btn" class="w-full bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700 transition">Save Password</button>
+            <button id="btnLogin" onclick="handleLogin()" data-i18n="login_btn" class="w-full bg-indigo-600 text-white py-2 rounded font-bold hover:bg-indigo-700">Login</button>
         </div>
     </div>
 
@@ -120,7 +54,7 @@
         </div>
         <div class="space-y-4">
             <div>
-                <input type="text" id="mfa-code" class="w-full p-3 border rounded text-center text-xl tracking-[0.5em] font-bold" placeholder="000000" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                <input type="text" id="mfa-code" class="w-full p-3 border rounded text-center text-xl tracking-[0.5em] font-bold" placeholder="000000" maxlength="6">
             </div>
             <button id="btnMfa" onclick="submitMfa()" class="w-full bg-indigo-800 text-white py-2 rounded font-bold hover:bg-indigo-900">Verify Code</button>
             <button onclick="handleLogout()" data-i18n="cancel_btn" class="w-full text-gray-500 py-2 underline text-sm">Cancel</button>
@@ -267,11 +201,10 @@
     <div id="setup2faModal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex justify-center items-center z-[100] no-print">
         <div class="bg-white p-6 rounded-lg w-full max-w-sm text-center shadow-xl">
             <h3 data-i18n="scan_qr_title" class="text-xl font-bold mb-2 text-indigo-800">Scan QR Code</h3>
-            <p data-i18n="scan_qr_desc" class="text-sm text-gray-600 mb-4">Scan this using Google Authenticator, then enter the 6-digit code below to confirm setup.</p>
+            <p data-i18n="scan_qr_desc" class="text-sm text-gray-600 mb-4">Open Google Authenticator and scan this QR code.</p>
             
-            <div id="qr-container" class="flex justify-center p-4 bg-gray-50 border rounded-lg mb-4 mx-auto w-[230px] h-[230px]"></div>
-            
-            <input type="text" id="setup-2fa-code" class="w-full p-3 border rounded text-center text-xl tracking-[0.5em] font-bold mb-4" placeholder="000000" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <div id="qr-container" class="flex justify-center p-4 bg-gray-50 border rounded-lg mb-4 mx-auto w-[230px] h-[230px]">
+            </div>
             
             <div class="flex justify-between gap-2">
                 <button onclick="close2FAModal()" data-i18n="cancel_btn" class="w-1/2 px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300">Cancel</button>
@@ -300,23 +233,17 @@
         let allData = [];
         let currentLang = 'en';
 
-        // Dictionary Bahasa (Ditambahkan untuk Signup & Reset Password)
+        // Dictionary
         const translations = {
             en: {
                 login_title: "Mortgage Portal Login", login_subtitle: "Please sign in to manage your payments.", username_label: "Email Address", password_label: "Password", login_btn: "Login",
-                forgot_password: "Forgot Password?", sign_up: "Sign Up", signup_title: "Create an Account", signup_subtitle: "Sign up to access the mortgage portal.", name_label: "Full Name", signup_btn: "Register", back_login: "Back to Login",
-                reset_title: "Reset Password", reset_subtitle: "Enter your email to receive a recovery link.", send_reset_btn: "Send Recovery Link",
-                new_pass_title: "Set New Password", new_pass_subtitle: "Please enter your new password below.", confirm_password_label: "Confirm Password", save_new_pass_btn: "Save Password",
                 mfa_title: "Two-Factor Auth", mfa_subtitle: "Enter the 6-digit code from Google Authenticator.", setup_2fa_btn: "🛡️ Setup 2FA", scan_qr_title: "Scan QR Code", scan_qr_desc: "Open Google Authenticator and scan this QR code.",
-                nav_input: "Payment Input", nav_history: "Payment History", logout_btn: "Logout", type_label: "Type", bank_info_title: "Receiver Account Information:", code_label: "Code", bank_label: "Bank", acc_no_label: "Acc No", name_label_bank: "Name", form_date: "Payment Date", form_method: "Payment Method", select_method: "Select Method", form_amount: "Amount (IDR)", form_proof: "Proof of Payment", submit_btn: "Submit Payment", loading_msg: "Processing... Please wait.", history_title: "Payment History", total_amount_label: "Grand Total Amount:", progress_label: "Installment Progress (20 Years):", months_label: "Months", remaining_label: "Remaining", left_label: "left", all_months: "All Months", all_years: "All Years", search_btn: "Search", reset_btn: "Reset", print_btn: "Print", th_date: "Date", th_method: "Method", th_amount: "Amount", th_receipt: "Receipt", th_actions: "Actions", edit_title: "Edit Payment", cancel_btn: "Cancel", save_btn: "Save", no_records: "No records.", alert_success: "Success!", confirm_delete: "Delete record?", view_receipt: "View"
+                nav_input: "Payment Input", nav_history: "Payment History", logout_btn: "Logout", type_label: "Type", bank_info_title: "Receiver Account Information:", code_label: "Code", bank_label: "Bank", acc_no_label: "Acc No", name_label: "Name", form_date: "Payment Date", form_method: "Payment Method", select_method: "Select Method", form_amount: "Amount (IDR)", form_proof: "Proof of Payment", submit_btn: "Submit Payment", loading_msg: "Processing... Please wait.", history_title: "Payment History", total_amount_label: "Grand Total Amount:", progress_label: "Installment Progress (20 Years):", months_label: "Months", remaining_label: "Remaining", left_label: "left", all_months: "All Months", all_years: "All Years", search_btn: "Search", reset_btn: "Reset", print_btn: "Print", th_date: "Date", th_method: "Method", th_amount: "Amount", th_receipt: "Receipt", th_actions: "Actions", edit_title: "Edit Payment", cancel_btn: "Cancel", save_btn: "Save", no_records: "No records.", alert_success: "Success!", confirm_delete: "Delete record?", view_receipt: "View"
             },
             id: {
                 login_title: "Login Portal KPR", login_subtitle: "Silakan masuk untuk mengelola pembayaran Anda.", username_label: "Alamat Email", password_label: "Kata Sandi", login_btn: "Masuk",
-                forgot_password: "Lupa Kata Sandi?", sign_up: "Daftar Akun", signup_title: "Buat Akun Baru", signup_subtitle: "Daftar untuk mengakses portal KPR.", name_label: "Nama Lengkap", signup_btn: "Daftar Sekarang", back_login: "Kembali ke Login",
-                reset_title: "Reset Kata Sandi", reset_subtitle: "Masukkan email untuk menerima tautan reset.", send_reset_btn: "Kirim Tautan Reset",
-                new_pass_title: "Buat Kata Sandi Baru", new_pass_subtitle: "Silakan masukkan kata sandi baru Anda.", confirm_password_label: "Konfirmasi Kata Sandi", save_new_pass_btn: "Simpan Kata Sandi",
                 mfa_title: "Otentikasi Dua Langkah", mfa_subtitle: "Masukkan 6 digit kode dari Google Authenticator.", setup_2fa_btn: "🛡️ Setup 2FA", scan_qr_title: "Pindai Kode QR", scan_qr_desc: "Buka Google Authenticator lalu pindai QR ini untuk integrasi.",
-                nav_input: "Input Pembayaran", nav_history: "Riwayat Pembayaran", logout_btn: "Keluar", type_label: "Tipe", bank_info_title: "Informasi Rekening Penerima:", code_label: "Kode", bank_label: "Bank", acc_no_label: "No Rek", name_label_bank: "Nama", form_date: "Tanggal Bayar", form_method: "Metode Pembayaran", select_method: "Pilih Metode", form_amount: "Nominal (IDR)", form_proof: "Bukti Pembayaran", submit_btn: "Kirim Pembayaran", loading_msg: "Memproses... Mohon tunggu.", history_title: "Riwayat Pembayaran", total_amount_label: "Total Seluruh Pembayaran:", progress_label: "Progress Cicilan (20 Tahun):", months_label: "Bulan", remaining_label: "Sisa", left_label: "lagi", all_months: "Semua Bulan", all_years: "Semua Tahun", search_btn: "Cari", reset_btn: "Reset", print_btn: "Cetak", th_date: "Tanggal", th_method: "Metode", th_amount: "Nominal", th_receipt: "Bukti", th_actions: "Aksi", edit_title: "Edit Pembayaran", cancel_btn: "Batal", save_btn: "Simpan", no_records: "Tidak ada data.", alert_success: "Berhasil!", confirm_delete: "Hapus data ini?", view_receipt: "Lihat"
+                nav_input: "Input Pembayaran", nav_history: "Riwayat Pembayaran", logout_btn: "Keluar", type_label: "Tipe", bank_info_title: "Informasi Rekening Penerima:", code_label: "Kode", bank_label: "Bank", acc_no_label: "No Rek", name_label: "Nama", form_date: "Tanggal Bayar", form_method: "Metode Pembayaran", select_method: "Pilih Metode", form_amount: "Nominal (IDR)", form_proof: "Bukti Pembayaran", submit_btn: "Kirim Pembayaran", loading_msg: "Memproses... Mohon tunggu.", history_title: "Riwayat Pembayaran", total_amount_label: "Total Seluruh Pembayaran:", progress_label: "Progress Cicilan (20 Tahun):", months_label: "Bulan", remaining_label: "Sisa", left_label: "lagi", all_months: "Semua Bulan", all_years: "Semua Tahun", search_btn: "Cari", reset_btn: "Reset", print_btn: "Cetak", th_date: "Tanggal", th_method: "Metode", th_amount: "Nominal", th_receipt: "Bukti", th_actions: "Aksi", edit_title: "Edit Pembayaran", cancel_btn: "Batal", save_btn: "Simpan", no_records: "Tidak ada data.", alert_success: "Berhasil!", confirm_delete: "Hapus data ini?", view_receipt: "Lihat"
             }
         };
 
@@ -329,21 +256,13 @@
             calculateSummary(allData); renderTable(allData);
         }
 
-        // --- SISTEM TOGGLE TAMPILAN AWAL ---
-        function showSection(sectionId) {
-            const sections = ['login-section', 'signup-section', 'reset-section', 'new-password-section', 'mfa-section', 'dashboard-section'];
-            sections.forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.classList.add('hidden');
-            });
-            document.getElementById(sectionId).classList.remove('hidden');
-        }
-
         // --- SISTEM AUTHENTICATION & MFA ---
         async function checkAuth() {
             try {
                 await account.get();
-                showSection('dashboard-section');
+                document.getElementById('mfa-section').classList.add('hidden');
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
                 showView('form-view');
                 loadData();
             } catch (error) {
@@ -351,13 +270,21 @@
                     try {
                         const challenge = await account.createMfaChallenge('totp');
                         window.currentChallengeId = challenge.$id; 
-                        showSection('mfa-section');
+                        
+                        document.getElementById('login-section').classList.add('hidden');
+                        document.getElementById('dashboard-section').classList.add('hidden');
+                        document.getElementById('mfa-section').classList.remove('hidden');
                     } catch (err) {
+                        console.error("Gagal inisialisasi input MFA", err);
                         alert("Gagal memuat sistem 2FA: " + err.message);
-                        showSection('login-section');
+                        document.getElementById('mfa-section').classList.add('hidden');
+                        document.getElementById('dashboard-section').classList.add('hidden');
+                        document.getElementById('login-section').classList.remove('hidden');
                     }
                 } else {
-                    showSection('login-section');
+                    document.getElementById('mfa-section').classList.add('hidden');
+                    document.getElementById('dashboard-section').classList.add('hidden');
+                    document.getElementById('login-section').classList.remove('hidden');
                 }
             }
         }
@@ -381,83 +308,6 @@
             checkAuth(); 
         }
 
-        // --- SISTEM SIGN UP ---
-        async function handleSignUp() {
-            const name = document.getElementById('reg-name').value;
-            const email = document.getElementById('reg-email').value;
-            const pass = document.getElementById('reg-password').value;
-            const btn = document.getElementById('btnSignup');
-            
-            if(!name || !email || !pass) return alert("Mohon lengkapi semua data!");
-            if(pass.length < 8) return alert("Kata sandi minimal 8 karakter!");
-
-            btn.innerText = "Processing..."; btn.disabled = true;
-            try {
-                await account.create(ID.unique(), email, pass, name);
-                alert(currentLang === 'id' ? "Pendaftaran berhasil! Silakan login." : "Sign up successful! Please log in.");
-                
-                // Clear input
-                document.getElementById('reg-name').value = '';
-                document.getElementById('reg-email').value = '';
-                document.getElementById('reg-password').value = '';
-                
-                showSection('login-section');
-            } catch (error) {
-                alert("Gagal mendaftar: " + error.message);
-            } finally {
-                btn.innerText = translations[currentLang].signup_btn; btn.disabled = false;
-            }
-        }
-
-        // --- SISTEM FORGOT & RESET PASSWORD ---
-        async function handleRequestReset() {
-            const email = document.getElementById('reset-email').value;
-            const btn = document.getElementById('btnReset');
-            
-            if(!email) return alert("Masukkan alamat email!");
-
-            btn.innerText = "Processing..."; btn.disabled = true;
-            
-            // URL saat ini untuk dijadikan tujuan balik dari email
-            const resetUrl = window.location.origin + window.location.pathname; 
-
-            try {
-                await account.createRecovery(email, resetUrl);
-                alert(currentLang === 'id' ? "Tautan reset telah dikirim ke email Anda! Silakan cek kotak masuk." : "Recovery link sent! Check your inbox.");
-                document.getElementById('reset-email').value = '';
-                showSection('login-section');
-            } catch (error) {
-                alert("Error: " + error.message);
-            } finally {
-                btn.innerText = translations[currentLang].send_reset_btn; btn.disabled = false;
-            }
-        }
-
-        async function handleSetNewPassword() {
-            const pass = document.getElementById('new-password').value;
-            const pass2 = document.getElementById('confirm-password').value;
-            const btn = document.getElementById('btnSaveNewPass');
-
-            if(pass !== pass2) return alert(currentLang === 'id' ? "Kata sandi tidak cocok!" : "Passwords do not match!");
-            if(pass.length < 8) return alert(currentLang === 'id' ? "Kata sandi minimal 8 karakter!" : "Password min 8 characters!");
-
-            btn.innerText = "Processing..."; btn.disabled = true;
-
-            try {
-                // Update password menggunakan userId dan secret dari URL
-                await account.updateRecovery(window.resetUserId, window.resetSecret, pass, pass2);
-                alert(currentLang === 'id' ? "Kata sandi berhasil diubah! Silakan login." : "Password reset successful! Please log in.");
-                
-                // Bersihkan URL dari parameter rahasia lalu muat ulang halaman
-                window.location.href = window.location.origin + window.location.pathname;
-            } catch (error) {
-                alert("Gagal mereset kata sandi: " + error.message);
-            } finally {
-                btn.innerText = translations[currentLang].save_new_pass_btn; btn.disabled = false;
-            }
-        }
-
-        // --- SISTEM VERIFIKASI MFA ---
         async function submitMfa() {
             const code = document.getElementById('mfa-code').value;
             const btn = document.getElementById('btnMfa');
@@ -490,6 +340,7 @@
                     return;
                 }
 
+                await account.updateMfa(true);
                 const auth = await account.createMfaAuthenticator('totp');
                 
                 document.getElementById('setup2faModal').classList.remove('hidden');
@@ -507,48 +358,15 @@
         }
 
         async function confirmSetup2FA() {
-            const btn = document.querySelector('button[onclick="confirmSetup2FA()"]');
-            const originalText = btn.innerText;
-            btn.innerText = "Memproses...";
-            btn.disabled = true;
-
-            try {
-                let code = document.getElementById('setup-2fa-code').value;
-                code = code.replace(/\s+/g, ''); // Hapus spasi
-
-                if (code.length !== 6) {
-                    alert(currentLang === 'id' ? "Kode harus 6 digit angka!" : "Code must be 6 digits!");
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                    return;
-                }
-
-                // 1. Verifikasi Kode Dulu
-                await account.verifyMfaAuthenticator('totp', code);
-
-                // 2. Jika sukses, baru aktifkan MFA di Appwrite
-                try {
-                    await account.updateMfa(true);
-                } catch(updateErr) {
-                    console.log("MFA dipasang tapi gagal force-update:", updateErr);
-                }
-
-                alert(currentLang === 'id' ? "2FA Berhasil Diaktifkan! Login berikutnya akan meminta PIN." : "2FA Successfully Enabled!");
-                close2FAModal();
-            } catch (error) { 
-                alert("Kode tidak valid: " + error.message); 
-            } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
+            alert(currentLang === 'id' ? "2FA Berhasil Dikonfigurasi!" : "2FA Successfully Configured!");
+            close2FAModal();
         }
 
         function close2FAModal() { 
             document.getElementById('setup2faModal').classList.add('hidden');
-            document.getElementById('setup-2fa-code').value = '';
         }
 
-        // --- SISTEM CRUD & UI DASHBOARD ---
+        // --- SISTEM CRUD & UI ---
         function showView(viewId) {
             document.getElementById('form-view').classList.add('hidden');
             document.getElementById('table-view').classList.add('hidden');
@@ -652,28 +470,9 @@
             doc.autoTable({ head: [tableColumn], body: tableRows, startY: 30, theme: 'grid', headStyles: { fillColor: [79, 70, 229] }, styles: { fontSize: 10 } }); doc.save("Riwayat_Pembayaran_KPR.pdf");
         }
 
-        // Ekspos semua fungsi ke window agar bisa dipanggil dari HTML
         window.changeLanguage = changeLanguage; window.handleLogin = handleLogin; window.handleLogout = handleLogout; window.showView = showView; window.loadData = loadData; window.submitForm = submitForm; window.deleteData = deleteData; window.openEditModal = openEditModal; window.closeEditModal = closeEditModal; window.saveEdit = saveEdit; window.applyFilter = applyFilter; window.resetFilter = resetFilter; window.exportExcel = exportExcel; window.exportPDF = exportPDF; window.setup2FA = setup2FA; window.confirmSetup2FA = confirmSetup2FA; window.close2FAModal = close2FAModal; window.submitMfa = submitMfa;
-        window.showSection = showSection; window.handleSignUp = handleSignUp; window.handleRequestReset = handleRequestReset; window.handleSetNewPassword = handleSetNewPassword;
 
-        window.onload = () => { 
-            changeLanguage('en'); 
-            
-            // CEK URL: Jika pengguna kembali dari klik link email "Lupa Password"
-            const urlParams = new URLSearchParams(window.location.search);
-            const userId = urlParams.get('userId');
-            const secret = urlParams.get('secret');
-
-            if (userId && secret) {
-                // Simpan credential ke window agar bisa digunakan saat submit password baru
-                window.resetUserId = userId;
-                window.resetSecret = secret;
-                showSection('new-password-section');
-            } else {
-                // Alur login normal
-                checkAuth(); 
-            }
-        };
+        window.onload = () => { changeLanguage('en'); checkAuth(); };
     </script>
 </body>
 </html>
