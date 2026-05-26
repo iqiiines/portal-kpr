@@ -335,39 +335,57 @@
             } catch (error) { location.reload(); }
         }
 
-        // --- SETUP 2FA GOOGLE AUTHENTICATOR ---
+        // --- SETUP 2FA GOOGLE AUTHENTICATOR (VERSI DIPERBAIKI) ---
         async function setup2FA() {
             try {
                 const user = await account.get();
+                // Jika user sudah memiliki MFA aktif, jangan buat lagi
                 if (user.mfa) {
                     alert(currentLang === 'id' ? "Keamanan 2FA sudah aktif di akun Anda." : "2FA is already active on your account.");
                     return;
                 }
 
+                // 1. Update status MFA menjadi true
                 await account.updateMfa(true);
+                // 2. Buat authenticator
                 const auth = await account.createMfaAuthenticator('totp');
                 
-                document.getElementById('setup2faModal').classList.remove('hidden');
-                document.getElementById('qr-container').innerHTML = '';
+                // 3. Tampilkan Modal
+                const modal = document.getElementById('setup2faModal');
+                modal.classList.remove('hidden');
                 
-                new QRCode(document.getElementById('qr-container'), {
-                    text: auth.uri, 
-                    width: 200,
-                    height: 200,
-                    colorDark : "#1e1b4b", 
-                    colorLight : "#ffffff"
-                });
+                // 4. Jeda sebentar agar browser selesai merender modal (penting agar QR muncul!)
+                setTimeout(() => {
+                    document.getElementById('qr-container').innerHTML = '';
+                    new QRCode(document.getElementById('qr-container'), {
+                        text: auth.uri, 
+                        width: 200,
+                        height: 200,
+                        colorDark : "#1e1b4b",
+                        colorLight : "#ffffff"
+                    });
+                }, 100);
 
-            } catch (error) { alert("Gagal inisialisasi 2FA: " + error.message); }
+            } catch (error) { 
+                alert("Gagal inisialisasi 2FA: " + error.message); 
+            }
         }
 
         async function confirmSetup2FA() {
             const code = document.getElementById('setup-2fa-code').value;
+            if (code.length !== 6) {
+                alert("Masukkan 6 digit kode.");
+                return;
+            }
             try {
+                // Konfirmasi ke server
                 await account.verifyMfaAuthenticator('totp', code);
-                alert(currentLang === 'id' ? "2FA Berhasil Diaktifkan! Login berikutnya akan meminta PIN." : "2FA Successfully Enabled!");
+                alert(currentLang === 'id' ? "2FA Berhasil Diaktifkan!" : "2FA Successfully Enabled!");
                 close2FAModal();
-            } catch (error) { alert("Kode tidak valid: " + error.message); }
+                location.reload(); // Refresh untuk memastikan sesi terupdate
+            } catch (error) { 
+                alert("Kode tidak valid: " + error.message); 
+            }
         }
 
         function close2FAModal() { 
